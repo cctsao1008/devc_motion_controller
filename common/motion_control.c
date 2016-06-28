@@ -11,10 +11,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <time.h>
 
 #include "system.h"
 #include "small-matrix-inverse\invert4x4_c.h"
 #include "..\platform\platform.h"
+
+#define DEBUG true
 
 float RV1[4] = {1.0f,  1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0};
 float RV2[4] = {1.0f, -1.0f,  (DEFAULT_L1 + DEFAULT_L2), 0};
@@ -42,7 +45,7 @@ bool motion_control_update(system_state ss)
 	
 	inverse_kinematics(&_ss);
 	
-	#if 0
+	#if DEBUG
 	/*  take w1, w2, w3, w4 from motor control*/
 	_ss.pv.w1 = ss.pv.w1;
 	_ss.pv.w2 = ss.pv.w2;
@@ -57,6 +60,8 @@ bool motion_control_update(system_state ss)
 	#endif
 	
 	forward_kinematics(&_ss);
+	
+	//usleep(200000);
 	
 	return true;
 }
@@ -75,7 +80,7 @@ bool  kinematics_init(void)
 	
 	invert4x4(m_src, m_dst);
 
-	#if 1
+	#if DEBUG
 	printf("[DEBUG] m_src = \n");
 	for(i = 0 ; i < 4 ; i++)
 	{
@@ -103,7 +108,7 @@ bool  kinematics_init(void)
 		INV_RV4[i] = m_dst[i + 12];
 	}
 
-	#if 1
+	#if DEBUG
 	printf("[DEBUG] INV_RV = \n");
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", INV_RV1[0], INV_RV1[1], INV_RV1[2], INV_RV1[3]);
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", INV_RV2[0], INV_RV2[1], INV_RV2[2], INV_RV2[3]);
@@ -126,7 +131,7 @@ bool  forward_kinematics(system_state* ss)
 	ss->pv.vy = (INV_RV2[0] * w1 + INV_RV2[1] * w2 + INV_RV2[2] * w3 + INV_RV2[3] * w4) * R;
 	ss->pv.w0 = (INV_RV3[0] * w1 + INV_RV3[1] * w2 + INV_RV3[2] * w3 + INV_RV3[3] * w4) * R;
 
-	#if 1
+	#if DEBUG
 	printf("[DEBUG] forward_kinematics = \n");
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", w1, w2, w3, w4);
 	printf("%+5.4f %+5.4f %+5.4f \n\n", ss->pv.vx, ss->pv.vy, ss->pv.w0);
@@ -147,7 +152,7 @@ bool  inverse_kinematics(system_state* ss)
 	ss->sv.w3 = (1 / R) * (vx * RV3[0] + vy * RV3[1] + w0 * RV3[2]);
 	ss->sv.w4 = (1 / R) * (vx * RV4[0] + vy * RV4[1] + w0 * RV4[2]);
 
-	#if 1
+	#if DEBUG
 	printf("[DEBUG] inverse_kinematics = \n");
 	printf("%+5.4f %+5.4f %+5.4f \n", vx, vy, w0);
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n\n", ss->sv.w1, ss->sv.w3, ss->sv.w3, ss->sv.w4);
