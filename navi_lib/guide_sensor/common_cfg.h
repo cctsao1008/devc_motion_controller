@@ -8,7 +8,7 @@
 
 #pragma once
 
-#define MM2M	1000	// convert mm to m
+#define MM2M    1000    // convert mm to m
 
 #ifdef USE_GUIDE_SENSOR_D16
     #include "digital_16/digital_16.h"

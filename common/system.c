@@ -20,12 +20,12 @@ system_state _ss = {
 
 void sys_get_status(system_state* ss)
 {
-	 *ss = _ss;
+     *ss = _ss;
 }
 
 void sys_set_status(system_state* ss)
 {
-	_ss = *ss;
+    _ss = *ss;
 }
 
 /* parameters */

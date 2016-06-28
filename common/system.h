@@ -10,59 +10,59 @@
 
 #include <stdbool.h>
 
-#define MM2M	1000    // convert mm to m
-//#define TRUE	1
-//#define FALSE	0
+#define MM2M    1000    // convert mm to m
+//#define TRUE  1
+//#define FALSE 0
 
 typedef struct _system_state
 {
-	struct
-	{
-		/* vx, vy, w0 & yaw in vehicle frame */
-		float vx;
-		float vy;
-		float w0;
-		float yaw;
+    struct
+    {
+        /* vx, vy, w0 & yaw in vehicle frame */
+        float vx;
+        float vy;
+        float w0;
+        float yaw;
 
-		/* angular rate for each wheel */
-		float w1;
-		float w2;
-		float w3;
-		float w4;
-	}sv;
+        /* angular rate for each wheel */
+        float w1;
+        float w2;
+        float w3;
+        float w4;
+    }sv;
 
-	struct
-	{
-		/* vx, vy, w0 & yaw in vehicle frame */
-		float vx;
-		float vy;
-		float w0;
-		float yaw;
+    struct
+    {
+        /* vx, vy, w0 & yaw in vehicle frame */
+        float vx;
+        float vy;
+        float w0;
+        float yaw;
 
-		/* angular rate for each wheel */
-		float w1;
-		float w2;
-		float w3;
-		float w4;
-	}pv;
+        /* angular rate for each wheel */
+        float w1;
+        float w2;
+        float w3;
+        float w4;
+    }pv;
 } system_state;
 
 typedef struct _motor_value
 {
-	float w1;
-	float w2;
-	float w3;
-	float w4;
+    float w1;
+    float w2;
+    float w3;
+    float w4;
 
-	float rpm1;
-	float rpm2;
-	float rpm3;
-	float rpm4;
+    float rpm1;
+    float rpm2;
+    float rpm3;
+    float rpm4;
 
-	float pwm1;
-	float pwm2;
-	float pwm3;
-	float pwm4;
+    float pwm1;
+    float pwm2;
+    float pwm3;
+    float pwm4;
 } motor_value;
 
 void sys_get_status(system_state* ss);
