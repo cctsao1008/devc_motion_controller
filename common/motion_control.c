@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include "system.h"
@@ -24,8 +25,44 @@ float INV_RV1[4], INV_RV2[4], INV_RV3[4], INV_RV4[4];
 
 float R = DEFAULT_R;
 
-/* get the inversed matrix of RV(4x4) */ 
-void kinematics_init(void)
+system_state _ss;
+
+bool motion_control_init(void)
+{
+	kinematics_init();
+	
+	return true;
+}
+
+bool motion_control_update(system_state ss)
+{
+	_ss.sv.vx = ss.sv.vx;
+	_ss.sv.vy = ss.sv.vy;
+	_ss.sv.w0 = ss.sv.w0;
+	
+	inverse_kinematics(&_ss);
+	
+	#if 0
+	/*  take w1, w2, w3, w4 from motor control*/
+	_ss.pv.w1 = ss.pv.w1;
+	_ss.pv.w2 = ss.pv.w2;
+	_ss.pv.w3 = ss.pv.w3;
+	_ss.pv.w4 = ss.pv.w4;
+	#else
+	/* generate fake w1, w2, w3, w4 */
+	_ss.pv.w1 = _ss.sv.w1;
+	_ss.pv.w2 = _ss.sv.w2;
+	_ss.pv.w3 = _ss.sv.w3;
+	_ss.pv.w4 = _ss.sv.w4;	
+	#endif
+	
+	forward_kinematics(&_ss);
+	
+	return true;
+}
+
+/* get the inverted matrix of RV(4x4) */ 
+bool  kinematics_init(void)
 {
 	uint16_t i = 0;
 
@@ -38,17 +75,23 @@ void kinematics_init(void)
 	
 	invert4x4(m_src, m_dst);
 
-	#if 0
-	printf("m_src = \n");
+	#if 1
+	printf("[DEBUG] m_src = \n");
 	for(i = 0 ; i < 4 ; i++)
 	{
 		printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", m_src[i*4 + 0], m_src[i*4 + 1], m_src[i*4 + 2], m_src[i*4 + 3]);
+
+		if(i == 3)
+		printf("\n");
 	} 
 
-    printf("m_dst = \n");
+	printf("[DEBUG] m_dst = \n");
 	for(i = 0 ; i < 4 ; i++)
 	{
 		printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", m_dst[i*4 + 0], m_dst[i*4 + 1], m_dst[i*4 + 2], m_dst[i*4 + 3]);
+
+		if(i == 3)
+		printf("\n");
 	}
 	#endif
 	
@@ -60,38 +103,56 @@ void kinematics_init(void)
 		INV_RV4[i] = m_dst[i + 12];
 	}
 
-	#if 0
-	printf("INV_RV = \n");
+	#if 1
+	printf("[DEBUG] INV_RV = \n");
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", INV_RV1[0], INV_RV1[1], INV_RV1[2], INV_RV1[3]);
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", INV_RV2[0], INV_RV2[1], INV_RV2[2], INV_RV2[3]);
 	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", INV_RV3[0], INV_RV3[1], INV_RV3[2], INV_RV3[3]);
-	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", INV_RV4[0], INV_RV4[1], INV_RV4[2], INV_RV4[3]);
+	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n\n", INV_RV4[0], INV_RV4[1], INV_RV4[2], INV_RV4[3]);
 	#endif
+	
+	return true;
 }
 
 /* forward kinematics equation */
-void forward_kinematics(system_state* ss)
+bool  forward_kinematics(system_state* ss)
 {
-	float w1 = ss->w1;
-	float w2 = ss->w2;
-	float w3 = ss->w3;
-	float w4 = ss->w4;
+	float w1 = ss->pv.w1;
+	float w2 = ss->pv.w2;
+	float w3 = ss->pv.w3;
+	float w4 = ss->pv.w4;
 
-	ss->vx = (INV_RV1[0] * w1 + INV_RV1[1] * w2 + INV_RV1[2] * w3 + INV_RV1[3] * w4) * R;
-	ss->vy = (INV_RV2[0] * w1 + INV_RV2[1] * w2 + INV_RV2[2] * w3 + INV_RV2[3] * w4) * R;
-	ss->w0 = (INV_RV3[0] * w1 + INV_RV3[1] * w2 + INV_RV3[2] * w3 + INV_RV3[3] * w4) * R;
+	ss->pv.vx = (INV_RV1[0] * w1 + INV_RV1[1] * w2 + INV_RV1[2] * w3 + INV_RV1[3] * w4) * R;
+	ss->pv.vy = (INV_RV2[0] * w1 + INV_RV2[1] * w2 + INV_RV2[2] * w3 + INV_RV2[3] * w4) * R;
+	ss->pv.w0 = (INV_RV3[0] * w1 + INV_RV3[1] * w2 + INV_RV3[2] * w3 + INV_RV3[3] * w4) * R;
+
+	#if 1
+	printf("[DEBUG] forward_kinematics = \n");
+	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", w1, w2, w3, w4);
+	printf("%+5.4f %+5.4f %+5.4f \n\n", ss->pv.vx, ss->pv.vy, ss->pv.w0);
+	#endif
+
+	return true;
 }
 
 /* inverse kinematics equation */
-void inverse_kinematics(system_state* ss)
+bool  inverse_kinematics(system_state* ss)
 {
-	float vx = ss->vx;
-	float vy = ss->vy;
-	float w0 = ss->w0;
+	float vx = ss->sv.vx;
+	float vy = ss->sv.vy;
+	float w0 = ss->sv.w0;
 	
-	ss->w1 = (1 / R) * (vx * RV1[0] + vy * RV1[1] + w0 * RV1[2]);
-	ss->w2 = (1 / R) * (vx * RV2[0] + vy * RV2[1] + w0 * RV2[2]);
-	ss->w3 = (1 / R) * (vx * RV3[0] + vy * RV3[1] + w0 * RV3[2]);
-	ss->w4 = (1 / R) * (vx * RV4[0] + vy * RV4[1] + w0 * RV4[2]);
+	ss->sv.w1 = (1 / R) * (vx * RV1[0] + vy * RV1[1] + w0 * RV1[2]);
+	ss->sv.w2 = (1 / R) * (vx * RV2[0] + vy * RV2[1] + w0 * RV2[2]);
+	ss->sv.w3 = (1 / R) * (vx * RV3[0] + vy * RV3[1] + w0 * RV3[2]);
+	ss->sv.w4 = (1 / R) * (vx * RV4[0] + vy * RV4[1] + w0 * RV4[2]);
+
+	#if 1
+	printf("[DEBUG] inverse_kinematics = \n");
+	printf("%+5.4f %+5.4f %+5.4f \n", vx, vy, w0);
+	printf("%+5.4f %+5.4f %+5.4f %+5.4f \n\n", ss->sv.w1, ss->sv.w3, ss->sv.w3, ss->sv.w4);
+	#endif
+
+	return true;
 }
 

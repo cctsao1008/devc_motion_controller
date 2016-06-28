@@ -1,7 +1,7 @@
 /**
  * @file system.c
  *
- * configuration file for OMR10 4WD mecanum wheel platform
+ * system
  *
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
@@ -12,10 +12,10 @@
 
 /* status */
 system_state _ss = {
-    .vx = 0.0f,
-    .vy = 0.0f,
-    .w0 = 0.0f,
-    .yaw = 0.0f,
+    .sv.vx = 0.0f,
+    .sv.vy = 0.0f,
+    .sv.w0 = 0.0f,
+    .sv.yaw = 0.0f,
 };
 
 void sys_get_status(system_state* ss)

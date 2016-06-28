@@ -40,7 +40,7 @@ void MyFunc(void *data)
     { 
         sys_get_status(&ss);
         
-        ss.yaw =  ss.yaw + 0.1f;
+        ss.pv.yaw =  ss.pv.yaw + 0.1f;
         
 		sys_set_status(&ss);
 
@@ -52,8 +52,8 @@ uint16_t guide_sensor_d16_init(uint16_t offset)
 {
     //srand( (unsigned volatile)time(NULL) ); // 以時間序列當亂數種子
     //srand((unsigned) time(NULL) + getpid());
-    pthread_t tid;
-    pthread_create(&tid, NULL, (void *)&MyFunc, NULL);
+    //pthread_t tid;
+    //pthread_create(&tid, NULL, (void *)&MyFunc, NULL);
 
 	uint16_t data = rand();
 	
