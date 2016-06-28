@@ -47,6 +47,24 @@ typedef struct _system_state
 	}pv;
 } system_state;
 
+typedef struct _motor_value
+{
+	float w1;
+	float w2;
+	float w3;
+	float w4;
+
+	float rpm1;
+	float rpm2;
+	float rpm3;
+	float rpm4;
+
+	float pwm1;
+	float pwm2;
+	float pwm3;
+	float pwm4;
+} motor_value;
+
 void sys_get_status(system_state* ss);
 void sys_set_status(system_state* ss);
 
