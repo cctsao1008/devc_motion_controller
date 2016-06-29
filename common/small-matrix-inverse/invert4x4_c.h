@@ -143,12 +143,8 @@ static inline int invert4x4(const float * src, float * dst)
 
     det = 1.0f / det;
 
-    // Ricardo ++
     if(det == INFINITY)
-        return 0;
-    else
-        return 1;
-    // Ricardo--
+        return false;
 
     dst[ 0] *= det;
     dst[ 1] *= det;
@@ -166,6 +162,8 @@ static inline int invert4x4(const float * src, float * dst)
     dst[13] *= det;
     dst[14] *= det;
     dst[15] *= det;
+
+    return true;
 }
 
 #endif /* invert4x4_c_h */
