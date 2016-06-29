@@ -1,5 +1,5 @@
 /**
- * @file omr10_spec.h
+ * @file spec.h
  *
  * platform settings for OMR 10 4WD mecanum wheel platform
  *
