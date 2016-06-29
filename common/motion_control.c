@@ -49,7 +49,11 @@ bool motion_control_init(system_data* sd)
         if(sd == NULL)
             return false;
 
-        kinematics_init(sd);
+        if(!kinematics_init(sd))
+        {
+        	return false;
+		}
+		
         initialized = true;
     }
     
@@ -58,6 +62,9 @@ bool motion_control_init(system_data* sd)
 
 bool motion_control_update(system_data* sd)
 {
+	if(!initialized)
+		return false;
+
     inverse_kinematics(sd);
     
     #if 1
@@ -85,7 +92,12 @@ bool  kinematics_init(system_data* sd)
                         
     float m_dst[16];
     
-    invert4x4(m_src, m_dst);
+    if(!invert4x4(m_src, m_dst))
+	{
+		printf("[DEBUG] matrix singular! \n");
+    	return false;
+	}
+    	
 
     #if DEBUG
     printf("[DEBUG] m_src = \n");
