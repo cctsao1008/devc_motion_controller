@@ -76,7 +76,7 @@ bool motion_control_update(system_data* sd)
 /* get the inverted matrix of RV(4x4) */ 
 bool  kinematics_init(system_data* sd)
 {
-    uint16_t i = 0;
+    uint16_t i = 0, idx = 0;
 
     float m_src[16] = { RV1[0], RV1[1], RV1[2], RV1[3],
                         RV2[0], RV2[1], RV2[2], RV2[3],
@@ -126,7 +126,7 @@ bool  kinematics_init(system_data* sd)
     /*  */
     #if 1
     printf("[DEBUG] using arrary method \n");
-    sd->mat_inverse = (float*)&mat_inverse;
+    sd->mat_inverse = (float*)mat_inverse;
     
     for(i = 0 ; i < 4 ; i++)
         printf("%9.4f ",  mat_inverse[0][i]);
@@ -153,7 +153,8 @@ bool  kinematics_init(system_data* sd)
         
     for(i = 0 ; i < 16 ; i++)
     {
-        printf("%9.4f ",  *(sd->mat_inverse + ((uint16_t)((i + 1) / 4) * 4) + i % 4));
+        idx = (((uint16_t)(i / 4) * 4) + (i % 4));
+        printf("%9.4f(%2d) ",  *(sd->mat_inverse + idx), idx);
         
         if((i + 1) % 4 == 0)
             printf("\n");
