@@ -52,10 +52,10 @@ typedef struct _motor_data
 
 typedef struct _system_data
 {
-    system_state	sv;
-    system_state	cv;
-    system_state	pv;
-    motor_data		mot;
+    system_state    sv;
+    system_state    cv;
+    system_state    pv;
+    motor_data      mot;
 
     float* mat_inverse;
     float* mat_forward;

@@ -1,8 +1,6 @@
 #ifndef invert4x4_c_h
 #define invert4x4_c_h
 
-//#include <math.h>
-
 static inline int invert4x4(const float * src, float * dst)
 {
     float det;
@@ -146,9 +144,9 @@ static inline int invert4x4(const float * src, float * dst)
     det = 1.0f / det;
 
     if(det == INFINITY)
-		return 0;
-	else
-		return 1;
+        return 0;
+    else
+        return 1;
 
     dst[ 0] *= det;
     dst[ 1] *= det;
