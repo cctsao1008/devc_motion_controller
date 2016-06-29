@@ -71,5 +71,6 @@ bool motion_control_init(system_data* sd);
 bool motion_control_update(system_data* sd);
 
 /* functions for motor control */
-
+bool motor_control_init(system_data* sd);
+bool motor_control_update(system_data* sd);
 

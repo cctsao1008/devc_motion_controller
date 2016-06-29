@@ -19,11 +19,12 @@ static bool initialized = false;
 
 system_data* system_init(void)
 {
-    printf("[SYSTEM-DEBUG] system_init... ");
+    printf("%-45s", "[INFO] system_init... ");
+
     if(initialized == false)
     {
         initialized = true;
-        printf("PASSED \n\n");
+        printf("PASSED \n");
     }
 
     return &data;

@@ -45,8 +45,7 @@ int main(int argc, char *argv[]) {
     sd->sv.vx = 1.0f;
     
     motion_control_init(sd);
-    
-    motion_control_update(sd);
+    motor_control_init(sd);
 
     while(1)
     {

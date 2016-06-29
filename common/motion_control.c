@@ -31,19 +31,22 @@ bool  inverse_kinematics(system_data* sd);
 
 bool motion_control_init(system_data* sd)
 {
+    printf("%-45s", "[INFO] motion_control_init... ");
+
     if(initialized == false)
     {
         if(sd == NULL)
             return false;
 
-        if(!kinematics_init(sd))
-        {
-            return false;
-        }
-        
         initialized = true;
+        printf("PASSED \n");
     }
     
+    if(!kinematics_init(sd))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -86,7 +89,7 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[MOTION-DEBUG] mat_inverse(2D) : \n");
+            printf("[DEBUG] mat_inverse(2D) : \n");
 
         row = (i / 4); col = (i % 4);
         printf("%9.4f(%d%d) ", mat_inverse[row][col], row, col);
@@ -106,7 +109,7 @@ bool  kinematics_init(system_data* sd)
 
         #if DEBUG
         if(i == 0)
-            printf("[MOTION-DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
+            printf("[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
 
         printf("%9.4f(%2d) ", mat_src[i], i);
         
@@ -120,7 +123,7 @@ bool  kinematics_init(system_data* sd)
      
     if(!invert4x4(mat_src, mat_dst))
     {
-        printf("[MOTION-DEBUG] matrix singular! \n");
+        printf("[ERROR] matrix singular! \n");
         return false;
     }
     
@@ -128,7 +131,7 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[MOTION-DEBUG] mat_dst(1D) = \n");
+            printf("[DEBUG] mat_dst(1D) = \n");
 
         row = (i / 4); col = (i % 4);
         printf("%9.4f(%2d) ", mat_dst[i], i);
@@ -148,7 +151,7 @@ bool  kinematics_init(system_data* sd)
 
         #if DEBUG
         if(i == 0)
-            printf("[MOTION-DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
+            printf("[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
 
         printf("%9.4f(%d%d) ", mat_forward[row][col], row, col);
         
@@ -167,7 +170,7 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[MOTION-DEBUG] sd->mat_inverse(2D) = \n");
+            printf("[DEBUG] sd->mat_inverse(2D) = \n");
 
         row = (i / 4); col = (i % 4);
         printf("%9.4f(%d%d) ", sd->mat_inverse[row][col], row, col);
@@ -182,7 +185,7 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[MOTION-DEBUG] sd->mat_forward(2D) = \n");
+            printf("[DEBUG] sd->mat_forward(2D) = \n");
 
         row = (i / 4); col = (i % 4);
         printf("%9.4f(%d%d) ", sd->mat_forward[row][col], row, col);
@@ -215,7 +218,7 @@ bool  inverse_kinematics(system_data* sd)
     sd->sv.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
 
     #if DEBUG
-    printf("[MOTION-DEBUG] inverse_kinematics = \n");
+    printf("[DEBUG] inverse_kinematics = \n");
     printf("input : vx, vy, w0 = \n");
     printf("%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
     printf("output : w1, w2, w3, w4 = \n");
@@ -243,7 +246,7 @@ bool  forward_kinematics(system_data* sd)
     sd->pv.w0 = (mat[3][0] * w1 + mat[3][1] * w2 + mat[3][2] * w3 + mat[3][3] * w4) * R;
 
     #if DEBUG
-    printf("[MOTION-DEBUG] forward_kinematics = \n");
+    printf("[DEBUG] forward_kinematics = \n");
     printf("input : w1, w2, w3, w4 = \n");
     printf("%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
     printf("output : vx, vy, w0 = \n");
