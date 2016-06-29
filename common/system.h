@@ -56,6 +56,9 @@ typedef struct _system_data
     system_state	cv;
     system_state	pv;
     motor_data		mot;
+
+    float* mat_inverse;
+    float* mat_forward;
 } system_data;
 
 system_data* system_init(void);

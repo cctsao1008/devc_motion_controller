@@ -45,16 +45,18 @@ int main(int argc, char *argv[]) {
     sd->sv.vx = 1.0f;
     
     motion_control_init(sd);
+    
+    motion_control_update(sd);
 
     while(1)
     {
         perf_begin();
-        motion_control_update(sd);
-        //usleep(200000);
+        //motion_control_update(sd);
+        usleep(200000);
         perf_end();
         
         double d = (double)(end - start) / CLOCKS_PER_SEC;
-        printf("%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
+        //printf("%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
 
         hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         nanosleep(&hrt, NULL);
