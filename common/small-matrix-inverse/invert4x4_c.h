@@ -143,10 +143,12 @@ static inline int invert4x4(const float * src, float * dst)
 
     det = 1.0f / det;
 
+    // Ricardo ++
     if(det == INFINITY)
         return 0;
     else
         return 1;
+    // Ricardo--
 
     dst[ 0] *= det;
     dst[ 1] *= det;
