@@ -19,13 +19,11 @@ static bool initialized = false;
 
 system_data* system_init(void)
 {
-    printf("system_init... ");
+    printf("[SYSTEM-DEBUG] system_init... ");
     if(initialized == false)
     {
-        //data = malloc(sizeof(system_data));
-
         initialized = true;
-        printf("[done] \n");
+        printf("PASSED \n\n");
     }
 
     return &data;
