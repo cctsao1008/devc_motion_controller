@@ -6,26 +6,29 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "system.h"
 
-//system_state ss;
+static system_data data;
 
-/* status */
-system_state _ss = {
-    .sv.vx = 0.0f,
-    .sv.vy = 0.0f,
-    .sv.w0 = 0.0f,
-    .sv.yaw = 0.0f,
-};
+static bool initialized = false;
 
-void sys_get_status(system_state* ss)
+system_data* system_init(void)
 {
-     *ss = _ss;
-}
+    printf("system_init... ");
+    if(initialized == false)
+    {
+        //data = malloc(sizeof(system_data));
 
-void sys_set_status(system_state* ss)
-{
-    _ss = *ss;
+        initialized = true;
+        printf("[done] \n");
+    }
+
+    return &data;
 }
 
 /* parameters */

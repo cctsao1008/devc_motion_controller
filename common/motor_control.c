@@ -16,15 +16,12 @@
 #include "system.h"
 #include "..\platform\platform.h"
 
-void AGR2RPM(motor_value* mv)
+float AGR2RPM(float w)
 {
-    mv->rpm1 = mv->w1 / M_PI;
-    mv->rpm2 = mv->w2 / M_PI;
-    mv->rpm3 = mv->w3 / M_PI;
-    mv->rpm4 = mv->w4 / M_PI;
+    return (w/M_PI);
 }
 
-void RPM2PWM(motor_value* mv)
+float RPM2PWM(float rpm)
 {
-    
+    return rpm;
 }

@@ -29,7 +29,7 @@ IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
 CompilerSettings=0000000000000000000000000
-UnitCount=5
+UnitCount=4
 
 [VersionInfo]
 Major=1
@@ -70,18 +70,8 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit3]
-FileName=..\navi_lib\guide_sensor\digital_16\digital_16.c
-CompileCpp=0
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
 [Unit4]
-FileName=..\common\motion_control.c
+FileName=..\common\motor_control.c
 CompileCpp=0
 Folder=
 Compile=1
@@ -92,6 +82,16 @@ BuildCmd=
 
 [Unit5]
 FileName=..\common\motor_control.c
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit3]
+FileName=..\common\motion_control.c
 CompileCpp=0
 Folder=
 Compile=1

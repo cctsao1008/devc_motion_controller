@@ -20,49 +20,33 @@
 
 #define DEBUG true
 
-float RV1[4] = {1.0f,  1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0};
-float RV2[4] = {1.0f, -1.0f,  (DEFAULT_L1 + DEFAULT_L2), 0};
-float RV3[4] = {1.0f, -1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0};
-float RV4[4] = {1.0f,  1.0f,  (DEFAULT_L1 + DEFAULT_L2), 1};
+static float RV1[4] = {1.0f,  1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0};
+static float RV2[4] = {1.0f, -1.0f,  (DEFAULT_L1 + DEFAULT_L2), 0};
+static float RV3[4] = {1.0f, -1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0};
+static float RV4[4] = {1.0f,  1.0f,  (DEFAULT_L1 + DEFAULT_L2), 1};
 
-float INV_RV1[4], INV_RV2[4], INV_RV3[4], INV_RV4[4];
+static float INV_RV1[4], INV_RV2[4], INV_RV3[4], INV_RV4[4];
 
-float R = DEFAULT_R;
+static float R = DEFAULT_R;
 
-system_state _ss;
+static bool initialized = false;
 
-bool motion_control_init(void)
+bool  forward_kinematics(system_data* sd);
+bool  inverse_kinematics(system_data* sd);
+
+bool motion_control_update(system_data* sd)
 {
-    kinematics_init();
+    inverse_kinematics(sd);
     
-    return true;
-}
-
-bool motion_control_update(system_state ss)
-{
-    _ss.sv.vx = ss.sv.vx;
-    _ss.sv.vy = ss.sv.vy;
-    _ss.sv.w0 = ss.sv.w0;
-    
-    inverse_kinematics(&_ss);
-    
-    #if DEBUG
-    /*  take w1, w2, w3, w4 from motor control*/
-    _ss.pv.w1 = ss.pv.w1;
-    _ss.pv.w2 = ss.pv.w2;
-    _ss.pv.w3 = ss.pv.w3;
-    _ss.pv.w4 = ss.pv.w4;
-    #else
-    /* generate fake w1, w2, w3, w4 */
-    _ss.pv.w1 = _ss.sv.w1;
-    _ss.pv.w2 = _ss.sv.w2;
-    _ss.pv.w3 = _ss.sv.w3;
-    _ss.pv.w4 = _ss.sv.w4;  
+    #if 1
+    /* fake data */
+    sd->pv.w1 = sd->sv.w1;
+    sd->pv.w2 = sd->sv.w2;
+    sd->pv.w3 = sd->sv.w3;
+    sd->pv.w4 = sd->sv.w4;
     #endif
     
-    forward_kinematics(&_ss);
-    
-    //usleep(200000);
+    forward_kinematics(sd);
     
     return true;
 }
@@ -121,44 +105,60 @@ bool  kinematics_init(void)
 }
 
 /* forward kinematics equation */
-bool  forward_kinematics(system_state* ss)
+bool  forward_kinematics(system_data* sd)
 {
-    float w1 = ss->pv.w1;
-    float w2 = ss->pv.w2;
-    float w3 = ss->pv.w3;
-    float w4 = ss->pv.w4;
+    float w1 = sd->pv.w1;
+    float w2 = sd->pv.w2;
+    float w3 = sd->pv.w3;
+    float w4 = sd->pv.w4;
 
-    ss->pv.vx = (INV_RV1[0] * w1 + INV_RV1[1] * w2 + INV_RV1[2] * w3 + INV_RV1[3] * w4) * R;
-    ss->pv.vy = (INV_RV2[0] * w1 + INV_RV2[1] * w2 + INV_RV2[2] * w3 + INV_RV2[3] * w4) * R;
-    ss->pv.w0 = (INV_RV3[0] * w1 + INV_RV3[1] * w2 + INV_RV3[2] * w3 + INV_RV3[3] * w4) * R;
+    sd->pv.vx = (INV_RV1[0] * w1 + INV_RV1[1] * w2 + INV_RV1[2] * w3 + INV_RV1[3] * w4) * R;
+    sd->pv.vy = (INV_RV2[0] * w1 + INV_RV2[1] * w2 + INV_RV2[2] * w3 + INV_RV2[3] * w4) * R;
+    sd->pv.w0 = (INV_RV3[0] * w1 + INV_RV3[1] * w2 + INV_RV3[2] * w3 + INV_RV3[3] * w4) * R;
 
     #if DEBUG
     printf("[DEBUG] forward_kinematics = \n");
+    printf("pv : w1, w2, w3, w4 = \n");
     printf("%+5.4f %+5.4f %+5.4f %+5.4f \n", w1, w2, w3, w4);
-    printf("%+5.4f %+5.4f %+5.4f \n\n", ss->pv.vx, ss->pv.vy, ss->pv.w0);
+    printf("pv : vx, vy, w0 = \n");
+    printf("%+5.4f %+5.4f %+5.4f \n\n", sd->pv.vx, sd->pv.vy, sd->pv.w0);
     #endif
 
     return true;
 }
 
 /* inverse kinematics equation */
-bool  inverse_kinematics(system_state* ss)
+bool  inverse_kinematics(system_data* sd)
 {
-    float vx = ss->sv.vx;
-    float vy = ss->sv.vy;
-    float w0 = ss->sv.w0;
+    float vx = sd->sv.vx;
+    float vy = sd->sv.vy;
+    float w0 = sd->sv.w0;
     
-    ss->sv.w1 = (1 / R) * (vx * RV1[0] + vy * RV1[1] + w0 * RV1[2]);
-    ss->sv.w2 = (1 / R) * (vx * RV2[0] + vy * RV2[1] + w0 * RV2[2]);
-    ss->sv.w3 = (1 / R) * (vx * RV3[0] + vy * RV3[1] + w0 * RV3[2]);
-    ss->sv.w4 = (1 / R) * (vx * RV4[0] + vy * RV4[1] + w0 * RV4[2]);
+    sd->sv.w1 = (1 / R) * (vx * RV1[0] + vy * RV1[1] + w0 * RV1[2]);
+    sd->sv.w2 = (1 / R) * (vx * RV2[0] + vy * RV2[1] + w0 * RV2[2]);
+    sd->sv.w3 = (1 / R) * (vx * RV3[0] + vy * RV3[1] + w0 * RV3[2]);
+    sd->sv.w4 = (1 / R) * (vx * RV4[0] + vy * RV4[1] + w0 * RV4[2]);
 
     #if DEBUG
     printf("[DEBUG] inverse_kinematics = \n");
+    printf("sv : vx, vy, w0 = \n");
     printf("%+5.4f %+5.4f %+5.4f \n", vx, vy, w0);
-    printf("%+5.4f %+5.4f %+5.4f %+5.4f \n\n", ss->sv.w1, ss->sv.w3, ss->sv.w3, ss->sv.w4);
+    printf("sv : w1, w2, w3, w4 = \n");
+    printf("%+5.4f %+5.4f %+5.4f %+5.4f \n\n", sd->sv.w1, sd->sv.w2, sd->sv.w3, sd->sv.w4);
     #endif
 
     return true;
 }
+
+bool motion_control_init(system_data* sd)
+{
+    if(initialized == false)
+    {
+        kinematics_init();
+        initialized = true;
+    }
+    
+    return true;
+}
+
 
