@@ -19,43 +19,41 @@
 typedef struct _system_state
 {
     /* vx, vy, w0 & yaw in vehicle frame */
-    float vx;
-    float x;
-    float vy;
-    float y;
-    float w0;
-    float yaw;
+    float x, y, yaw;
+    float vx, vy, w0;
 
     /* angular rate for each wheel */
-    float w1;
-    float w2;
-    float w3;
-    float w4;
+    float w1, w2, w3, w4;
 } system_state;
 
 typedef struct _motor_data
 {
     struct
     {
-        bool  fr[4];
-        float w[4];
-        float rpm[4];
-        float pwm[4];
+        bool  fr1, fr2, fr3, fr4;
+        float w1, w2, w3, w4;
+        float rpm1, rpm2, rpm3, rpm4;
+        float pwm1, pwm2, pwm3, pwm4;
 
     } in, out;
 } motor_data;
 
 typedef struct _system_data
 {
+    /* system */
     char log[4096];
 
-    system_state    sv;
-    system_state    cv;
-    system_state    pv;
-    motor_data      mot;
+    /* motion control */
+    system_state    sv, cv, pv;
 
     float mat_inverse[4][4];
     float mat_forward[4][4];
+
+    /* motor control */
+    motor_data      mot;
+
+    /* motor driver */
+    void* hComm;
 
     /* platform */
 
