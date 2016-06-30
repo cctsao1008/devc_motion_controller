@@ -31,18 +31,21 @@ float RPM2PWM(float rpm)
 
 bool motor_control_init(system_data* sd)
 {
-    MSG(sd->log, "%-45s", "[INFO] motor_control_init... ");
+    MSG(sd->log, "%s", "[INFO] motor_control_init... \n");
 
     if(initialized == false)
     {
         if(sd == NULL)
         {
-            MSG(sd->log, "FAILED \n");
-            return false;
+            MSG(sd->log, "[ERROR] motor_control_init, failed! \n");
+        }
+        
+        if(!motor_driver_init(sd))
+        {
+            MSG(sd->log, "[ERROR] motor_control_init, failed! \n");
         }
 
         initialized = true;
-        MSG(sd->log, "PASSED \n");
     }
 
     return true;

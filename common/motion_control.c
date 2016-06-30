@@ -31,7 +31,7 @@ bool  inverse_kinematics(system_data* sd);
 
 bool motion_control_init(system_data* sd)
 {
-    MSG(sd->log, "%-45s", "[INFO] motion_control_init... ");
+    MSG(sd->log, "%s", "[INFO] motion_control_init... \n");
 
     if(initialized == false)
     {
@@ -39,7 +39,6 @@ bool motion_control_init(system_data* sd)
             return false;
 
         initialized = true;
-        MSG(sd->log, "PASSED \n");
     }
     
     if(!kinematics_init(sd))

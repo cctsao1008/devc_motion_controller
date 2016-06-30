@@ -22,12 +22,11 @@ static bool initialized = false;
 
 system_data* system_init(void)
 {
-    MSG(data.log, "%-45s", "[INFO] system_init... ");
+    MSG(data.log, "%s", "[INFO] system_init... \n");
 
     if(initialized == false)
     {
         initialized = true;
-        MSG(data.log, "PASSED \n");
     }
 
     return &data;
