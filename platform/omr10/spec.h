@@ -21,6 +21,7 @@
 #define DEFAULT_MAX_LOAD                20.0f       // Kg
 
 /* Motor Driver */
+#define DEFAULT_MOTOR_POWER             30.0f       // Watt (W)
 #define DEFAULT_RPM2PWM_SLOPE           1.0f
 
 /* Guide Sensor */
