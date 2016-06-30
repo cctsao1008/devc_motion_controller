@@ -20,6 +20,12 @@
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
+void mdelay(unsigned int mseconds)
+{
+    clock_t ticks = mseconds + clock();
+    while (ticks > clock());
+}
+
 int main(int argc, char *argv[]) {
     /* setting value, control value, process value */
     system_data* sd = NULL;
