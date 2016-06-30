@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 
@@ -30,18 +31,18 @@ float RPM2PWM(float rpm)
 
 bool motor_control_init(system_data* sd)
 {
-    printf("%-45s", "[INFO] motor_control_init... ");
+    MSG(sd->log, "%-45s", "[INFO] motor_control_init... ");
 
     if(initialized == false)
     {
         if(sd == NULL)
         {
-            printf("FAILED \n");
+            MSG(sd->log, "FAILED \n");
             return false;
         }
 
         initialized = true;
-        printf("PASSED \n");
+        MSG(sd->log, "PASSED \n");
     }
 
     return true;

@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
     
     if(sd == NULL)
     {
-        printf("sd = NULL !");
+        MSG(sd->log, "sd = NULL !");
         return true;
     }
 
@@ -56,12 +58,17 @@ int main(int argc, char *argv[]) {
     while(1)
     {
         perf_begin();
-        //motion_control_update(sd);
-        usleep(200000);
+        motion_control_update(sd);
+        motor_control_update(sd);
+        motor_driver_update(sd);
+        MSG(sd->log, "%s \n", sd->log);
+        memset(sd->log, 0, sizeof(sd->log));
+        //usleep(200000);
+        mdelay(200);
         perf_end();
         
         double d = (double)(end - start) / CLOCKS_PER_SEC;
-        //printf("%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
+        MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
 
         hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         nanosleep(&hrt, NULL);

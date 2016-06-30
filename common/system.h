@@ -12,6 +12,10 @@
 
 #define MM2M    1000    // convert mm to m
 
+/* message */
+//#define MSG(buf, fmt, args...)	do { sprintf(buf, "" fmt "", ##args); } while(0)
+#define MSG(buf, fmt, args...)	do { printf("" fmt "", ##args); } while(0)
+
 typedef struct _system_state
 {
     /* vx, vy, w0 & yaw in vehicle frame */
@@ -33,25 +37,18 @@ typedef struct _motor_data
 {
     struct
     {
-        float w1;
-        float w2;
-        float w3;
-        float w4;
+        bool  fr[4];
+        float w[4];
+        float rpm[4];
+        float pwm[4];
 
-        float rpm1;
-        float rpm2;
-        float rpm3;
-        float rpm4;
-
-        float pwm1;
-        float pwm2;
-        float pwm3;
-        float pwm4;
     } in, out;
 } motor_data;
 
 typedef struct _system_data
 {
+    char log[4096];
+
     system_state    sv;
     system_state    cv;
     system_state    pv;
@@ -73,4 +70,8 @@ bool motion_control_update(system_data* sd);
 /* functions for motor control */
 bool motor_control_init(system_data* sd);
 bool motor_control_update(system_data* sd);
+
+/* functions for motor driver */
+bool motor_driver_init(system_data* sd);
+bool motor_driver_update(system_data* sd);
 

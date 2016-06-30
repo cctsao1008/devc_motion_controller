@@ -12,6 +12,6 @@
 
 #ifdef PLATFORM_OMR
     #include "omr10/spec.h"
-    #include "omr10/helper.c"
-    #include "omr10/motor_driver.c"
+    //#include "omr10/helper.c"
+    //#include "omr10/motor_driver.c"
 #endif

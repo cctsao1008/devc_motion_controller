@@ -31,7 +31,7 @@ bool  inverse_kinematics(system_data* sd);
 
 bool motion_control_init(system_data* sd)
 {
-    printf("%-45s", "[INFO] motion_control_init... ");
+    MSG(sd->log, "%-45s", "[INFO] motion_control_init... ");
 
     if(initialized == false)
     {
@@ -39,7 +39,7 @@ bool motion_control_init(system_data* sd)
             return false;
 
         initialized = true;
-        printf("PASSED \n");
+        MSG(sd->log, "PASSED \n");
     }
     
     if(!kinematics_init(sd))
@@ -89,16 +89,16 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[DEBUG] mat_inverse(2D) : \n");
+            MSG(sd->log, "[DEBUG] mat_inverse(2D) : \n");
 
         row = (i / 4); col = (i % 4);
-        printf("%9.4f(%d%d) ", mat_inverse[row][col], row, col);
+        MSG(sd->log, "%9.4f(%d%d) ", mat_inverse[row][col], row, col);
         
         if((i + 1) % 4 == 0)
-            printf("\n");
+            MSG(sd->log, "\n");
             
         if(i == 15)
-             printf("\n");
+             MSG(sd->log, "\n");
     }
     #endif
 
@@ -109,21 +109,21 @@ bool  kinematics_init(system_data* sd)
 
         #if DEBUG
         if(i == 0)
-            printf("[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
+            MSG(sd->log, "[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
 
-        printf("%9.4f(%2d) ", mat_src[i], i);
+        MSG(sd->log, "%9.4f(%2d) ", mat_src[i], i);
         
         if((i + 1) % 4 == 0)
-            printf("\n");
+            MSG(sd->log, "\n");
             
         if(i == 15)
-             printf("\n");
+             MSG(sd->log, "\n");
         #endif
     }
      
     if(!invert4x4(mat_src, mat_dst))
     {
-        printf("[ERROR] matrix singular! \n");
+        MSG(sd->log, "[ERROR] matrix singular! \n");
         return false;
     }
     
@@ -131,16 +131,16 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[DEBUG] mat_dst(1D) = \n");
+            MSG(sd->log, "[DEBUG] mat_dst(1D) = \n");
 
         row = (i / 4); col = (i % 4);
-        printf("%9.4f(%2d) ", mat_dst[i], i);
+        MSG(sd->log, "%9.4f(%2d) ", mat_dst[i], i);
         
         if((i + 1) % 4 == 0)
-            printf("\n");
+            MSG(sd->log, "\n");
             
         if(i == 15)
-             printf("\n");
+             MSG(sd->log, "\n");
     }
     #endif
 
@@ -151,15 +151,15 @@ bool  kinematics_init(system_data* sd)
 
         #if DEBUG
         if(i == 0)
-            printf("[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
+            MSG(sd->log, "[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
 
-        printf("%9.4f(%d%d) ", mat_forward[row][col], row, col);
+        MSG(sd->log, "%9.4f(%d%d) ", mat_forward[row][col], row, col);
         
         if((i + 1) % 4 == 0)
-            printf("\n");
+            MSG(sd->log, "\n");
             
         if(i == 15)
-             printf("\n");
+             MSG(sd->log, "\n");
         #endif
     }
 
@@ -170,31 +170,31 @@ bool  kinematics_init(system_data* sd)
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[DEBUG] sd->mat_inverse(2D) = \n");
+            MSG(sd->log, "[DEBUG] sd->mat_inverse(2D) = \n");
 
         row = (i / 4); col = (i % 4);
-        printf("%9.4f(%d%d) ", sd->mat_inverse[row][col], row, col);
+        MSG(sd->log, "%9.4f(%d%d) ", sd->mat_inverse[row][col], row, col);
         
         if((i + 1) % 4 == 0)
-            printf("\n");
+            MSG(sd->log, "\n");
             
         if(i == 15)
-             printf("\n");
+             MSG(sd->log, "\n");
     }
     
     for(i = 0 ; i < 16 ; i++)
     {
         if(i == 0)
-            printf("[DEBUG] sd->mat_forward(2D) = \n");
+            MSG(sd->log, "[DEBUG] sd->mat_forward(2D) = \n");
 
         row = (i / 4); col = (i % 4);
-        printf("%9.4f(%d%d) ", sd->mat_forward[row][col], row, col);
+        MSG(sd->log, "%9.4f(%d%d) ", sd->mat_forward[row][col], row, col);
         
         if((i + 1) % 4 == 0)
-            printf("\n");
+            MSG(sd->log, "\n");
             
         if(i == 15)
-             printf("\n");
+             MSG(sd->log, "\n");
     }
     #endif
 
@@ -218,11 +218,11 @@ bool  inverse_kinematics(system_data* sd)
     sd->sv.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
 
     #if DEBUG
-    printf("[DEBUG] inverse_kinematics = \n");
-    printf("input : vx, vy, w0 = \n");
-    printf("%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
-    printf("output : w1, w2, w3, w4 = \n");
-    printf("%9.4f %9.4f %9.4f %9.4f \n\n", sd->sv.w1, sd->sv.w2,
+    MSG(sd->log, "[DEBUG] inverse_kinematics = \n");
+    MSG(sd->log, "input : vx, vy, w0 = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
+    MSG(sd->log, "output : w1, w2, w3, w4 = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->sv.w1, sd->sv.w2,
                                            sd->sv.w3, sd->sv.w4);
     #endif
 
@@ -246,11 +246,11 @@ bool  forward_kinematics(system_data* sd)
     sd->pv.w0 = (mat[3][0] * w1 + mat[3][1] * w2 + mat[3][2] * w3 + mat[3][3] * w4) * R;
 
     #if DEBUG
-    printf("[DEBUG] forward_kinematics = \n");
-    printf("input : w1, w2, w3, w4 = \n");
-    printf("%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
-    printf("output : vx, vy, w0 = \n");
-    printf("%9.4f %9.4f %9.4f \n\n", sd->pv.vx, sd->pv.vy, sd->pv.w0);
+    MSG(sd->log, "[DEBUG] forward_kinematics = \n");
+    MSG(sd->log, "input : w1, w2, w3, w4 = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
+    MSG(sd->log, "output : vx, vy, w0 = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", sd->pv.vx, sd->pv.vy, sd->pv.w0);
     #endif
 
     return true;
