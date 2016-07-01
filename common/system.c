@@ -18,16 +18,10 @@
 #include "..\platform\platform.h"
 
 static system_data data;
-static bool initialized = false;
 
 system_data* system_init(void)
 {
     MSG(data.log, "%s", "[INFO] system_init... \n");
-
-    if(initialized == false)
-    {
-        initialized = true;
-    }
 
     return &data;
 }

@@ -58,17 +58,26 @@ int main(int argc, char *argv[]) {
         .tv_nsec = 1000000000UL,
     };
 
-    sd->sv.vx = 0.6f;
+    //sd->sv.vx = 0.6f;
+    //sd->sv.vy = 0.6f;
+    sd->sv.w0 = 0.6f;
     
     motion_control_init(sd);
     motor_control_init(sd);
+
+    #if 0
+    motion_control_update(sd);
+    motor_control_update(sd);
+    
+    motion_control_update(sd);
+    motor_control_update(sd);
+    #endif
 
     while(1)
     {
         perf_begin();
         motion_control_update(sd);
         motor_control_update(sd);
-        motor_driver_update(sd);
         //MSG(sd->log, "%s \n", sd->log);
         memset(sd->log, 0, sizeof(sd->log));
         //usleep(200000);

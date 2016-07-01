@@ -18,11 +18,13 @@
 #include "..\..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEBUG true
+#define DEBUG false
 
 /* protocol */
 #define STC1 0xEB // start code 1
 #define STC2 0x90 // start code 2
+
+static bool initialized = false;
 
 /* Add "\\\\.\\" for COM > 10 */
 static char* com_port = (char*)"\\\\.\\COM6";
@@ -179,8 +181,17 @@ DWORD uart_tx(HANDLE hComm, uint8_t * data, int length)
 }
 
 bool motor_driver_init(system_data* sd)
-{
-    uint8_t rc;
+{    
+    MSG(sd->log, "%s", "[INFO] motor_driver_init... \n");
+    
+    if(sd == NULL)
+    {
+        MSG(sd->log, "[ERROR] motor_driver_init, failed! \n");
+        return false;
+    }
+
+    if(initialized == true)
+        return true;
 
     fflush(stdout);
 
@@ -188,11 +199,11 @@ bool motor_driver_init(system_data* sd)
     
     if(sd->hComm ==INVALID_HANDLE_VALUE)
         return false;
-        
-    rc = setup_port(sd->hComm, CBR_9600, 8, NOPARITY, ONESTOPBIT);
     
-    if(!rc)
+    if(!setup_port(sd->hComm, CBR_9600, 8, NOPARITY, ONESTOPBIT))
         return false;
+
+    initialized = true;
 
     return true;
 }
@@ -205,10 +216,17 @@ bool motor_driver_update(system_data* sd)
     
     uint8_t rb[128] = {0}, rc = 0, i;
 
+    if((sd == NULL) || (initialized != true))
+    {
+        MSG(sd->log, "[ERROR] motor_driver_update, failed! \n");
+        return false;
+    }
+
     wb[127] = bcc(wb, 12);
     uart_tx(sd->hComm, wb, 12);
     uart_tx(sd->hComm, &wb[127], 1);
 
+    #if DEBUG
     rc = uart_rx(sd->hComm, rb,13);
     
     if(rc > 0)
@@ -216,6 +234,7 @@ bool motor_driver_update(system_data* sd)
         for(i = 0 ; i < rc ; i++)
             printf("0x%X \n", rb[i]);
     }
+    #endif
 
     return true;
 }

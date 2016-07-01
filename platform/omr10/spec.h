@@ -19,11 +19,11 @@
 #define DEFAULT_MAX_VX                  0.6f                // m/s, velocity
 #define DEFAULT_MAX_VY                  0.6f                // m/s, velocity
 #define DEFAULT_MAX_W0                  0.6f                // rad/s, rotation rate
-#define DEFAULT_MAX_LOAD                20.0f       // Kg
+#define DEFAULT_MAX_LOAD                20.0f               // Kg
 
 /* Motor Driver */
-#define DEFAULT_MOTOR_POWER             30.0f       // Watt (W)
-#define DEFAULT_RPM2PWM_SLOPE           1.0f
+#define DEFAULT_MOTOR_POWER             30.0f               // Watt (W)
+#define DEFAULT_RPM2PWM_SLOPE           (100.0f/270.0f)
 
 /* Guide Sensor */
 #define DEFAULT_GUIDE_SENSOR_OFFSET     (450.0f/2)
