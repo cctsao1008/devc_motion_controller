@@ -113,14 +113,12 @@ bool kinematics_init(system_data* sd)
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
-    #endif
 
     for(i = 0; i < 16; i++)
     {
         row = (i / 4); col = (i % 4);
         mat_src[i] = mat_inverse[row][col];
 
-        #if DEBUG
         if(i < 1)
             MSG(sd->log, "[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
 
@@ -128,8 +126,8 @@ bool kinematics_init(system_data* sd)
         
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
-        #endif
     }
+    #endif
      
     if(!invert4x4(mat_src, mat_dst))
     {
@@ -149,14 +147,12 @@ bool kinematics_init(system_data* sd)
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
-    #endif
 
     for(i = 0; i < 16; i++)
     {
         row = (i / 4); col = (i % 4);
         mat_forward[row][col] = mat_dst[i];
 
-        #if DEBUG
         if(i < 1)
             MSG(sd->log, "[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
 
@@ -164,8 +160,8 @@ bool kinematics_init(system_data* sd)
         
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
-        #endif
     }
+    #endif
 
     memcpy(sd->mat_inverse, mat_inverse, sizeof(mat_inverse));
     memcpy(sd->mat_forward, mat_forward, sizeof(mat_forward));
