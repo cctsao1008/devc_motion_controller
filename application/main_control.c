@@ -30,9 +30,8 @@ void mdelay(unsigned int mseconds)
 
 int main(int argc, char *argv[]) {
     /* setting value, control value, process value */
-    system_data* sd = NULL;
-    system_state* sv = NULL;
-    
+    system_data* sd;
+
     srand((unsigned) time(NULL) + getpid());
 
     #if 0  // REF.
@@ -59,7 +58,7 @@ int main(int argc, char *argv[]) {
         .tv_nsec = 1000000000UL,
     };
 
-    sd->sv.vx = 1.0f;
+    sd->sv.vx = 0.6f;
     
     motion_control_init(sd);
     motor_control_init(sd);

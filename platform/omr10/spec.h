@@ -11,13 +11,14 @@
 #ifdef PLATFORM_OMR
 
 /* Specification */
-#define DEFAULT_DIFF_DRV                4           // 4WD
-#define DEFAULT_L1                      (450.0f/2)  // mm, width/2
-#define DEFAULT_L2                      (480.0f/2)  // mm, high/2
-#define DEFAULT_R                       (100.0f/2)  // mm
-#define DEFAULT_WET                     0.6f        // Kg, weight
-#define DEFAULT_MAX_V                   0.6f        // m/s, velocity
-#define DEFAULT_MAX_W                   0.6f        // rad/s, rotation rate
+#define DEFAULT_DIFF_DRV                4                   // 4WD
+#define DEFAULT_L1                      (450.0f/2)/1000.0f  // m, width/2
+#define DEFAULT_L2                      (480.0f/2)/1000.0f  // m, high/2
+#define DEFAULT_R                       (100.0f/2)/1000.0f  // m, Wheel radius
+#define DEFAULT_WET                     0.6f                // Kg, weight
+#define DEFAULT_MAX_VX                  0.6f                // m/s, velocity
+#define DEFAULT_MAX_VY                  0.6f                // m/s, velocity
+#define DEFAULT_MAX_W0                  0.6f                // rad/s, rotation rate
 #define DEFAULT_MAX_LOAD                20.0f       // Kg
 
 /* Motor Driver */

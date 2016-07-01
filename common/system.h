@@ -10,23 +10,21 @@
 
 #include <stdbool.h>
 
-#define MM2M    1000    // convert mm to m
+#define MM2M    1000  // convert mm to m
+#define MIN2S   60    // convert mm to m
 
 /* message */
 //#define MSG(buf, fmt, args...)	do { sprintf(buf, "" fmt "", ##args); } while(0)
 #define MSG(buf, fmt, args...)	do { printf("" fmt "", ##args); } while(0)
 
-typedef struct _system_state
+typedef struct _sys_variable
 {
     /* vx, vy, w0 & yaw in vehicle frame */
     float x, y, yaw;
     float vx, vy, w0;
+} sys_variable;
 
-    /* angular rate for each wheel */
-    float w1, w2, w3, w4;
-} system_state;
-
-typedef struct _motor_data
+typedef struct _mot_data
 {
     struct
     {
@@ -36,21 +34,28 @@ typedef struct _motor_data
         float pwm1, pwm2, pwm3, pwm4;
 
     } in, out;
-} motor_data;
+} mot_data;
+
+typedef struct _pid_gain
+{
+    float kp, ki, kd;
+    float t1, t2;
+} pid_gain;
 
 typedef struct _system_data
 {
     /* system */
-    char log[4096];
+    char log[256];
 
     /* motion control */
-    system_state    sv, cv, pv;
+    sys_variable    sv, cv, pv;
 
     float mat_inverse[4][4];
     float mat_forward[4][4];
 
     /* motor control */
-    motor_data      mot;
+    mot_data mot;
+    pid_gain pid;
 
     /* motor driver */
     void* hComm;

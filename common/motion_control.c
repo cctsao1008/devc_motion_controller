@@ -24,11 +24,15 @@
 static bool initialized = false;
 static float R = DEFAULT_R;
 
-bool  kinematics_init(system_data* sd);
+/* kinematics equations */
+bool kinematics_init(system_data* sd);
+bool forward_kinematics(system_data* sd);
+bool inverse_kinematics(system_data* sd);
 
-bool  forward_kinematics(system_data* sd);
-bool  inverse_kinematics(system_data* sd);
+/* pid control */
+bool pid_control_init(system_data* sd);
 
+/* motion control */
 bool motion_control_init(system_data* sd)
 {
     MSG(sd->log, "%s", "[INFO] motion_control_init... \n");
@@ -51,26 +55,26 @@ bool motion_control_init(system_data* sd)
 
 bool motion_control_update(system_data* sd)
 {
-    if(!initialized)
+    if((sd == NULL) || (initialized != true))
         return false;
 
+    if(sd->sv.vx > DEFAULT_MAX_VX)
+        sd->sv.vx = DEFAULT_MAX_VX;
+
+    if(sd->sv.vy > DEFAULT_MAX_VY)
+        sd->sv.vy = DEFAULT_MAX_VY;
+ 
+    if(sd->sv.w0 > DEFAULT_MAX_W0)
+        sd->sv.w0 = DEFAULT_MAX_W0;
+
     inverse_kinematics(sd);
-    
-    #if 1
-    /* fake data */
-    sd->pv.w1 = sd->sv.w1;
-    sd->pv.w2 = sd->sv.w2;
-    sd->pv.w3 = sd->sv.w3;
-    sd->pv.w4 = sd->sv.w4;
-    #endif
-    
     forward_kinematics(sd);
     
     return true;
 }
 
 /* get the inverted matrix of RV(4x4) */ 
-bool  kinematics_init(system_data* sd)
+bool kinematics_init(system_data* sd)
 {
     uint16_t i = 0, row = 0, col = 0;
     
@@ -87,17 +91,14 @@ bool  kinematics_init(system_data* sd)
     #if DEBUG
     for(i = 0 ; i < 16 ; i++)
     {
-        if(i == 0)
+        if(i < 1)
             MSG(sd->log, "[DEBUG] mat_inverse(2D) : \n");
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%d%d) ", mat_inverse[row][col], row, col);
         
-        if((i + 1) % 4 == 0)
-            MSG(sd->log, "\n");
-            
-        if(i == 15)
-             MSG(sd->log, "\n");
+        if(((i + 1) % 4 == 0) || (i == 15))
+            MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
     #endif
 
@@ -107,16 +108,13 @@ bool  kinematics_init(system_data* sd)
         mat_src[i] = mat_inverse[row][col];
 
         #if DEBUG
-        if(i == 0)
+        if(i < 1)
             MSG(sd->log, "[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
 
         MSG(sd->log, "%9.4f(%2d) ", mat_src[i], i);
         
-        if((i + 1) % 4 == 0)
-            MSG(sd->log, "\n");
-            
-        if(i == 15)
-             MSG(sd->log, "\n");
+        if(((i + 1) % 4 == 0) || (i == 15))
+            MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
         #endif
     }
      
@@ -129,17 +127,14 @@ bool  kinematics_init(system_data* sd)
     #if DEBUG
     for(i = 0 ; i < 16 ; i++)
     {
-        if(i == 0)
+        if(i < 1)
             MSG(sd->log, "[DEBUG] mat_dst(1D) = \n");
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%2d) ", mat_dst[i], i);
         
-        if((i + 1) % 4 == 0)
-            MSG(sd->log, "\n");
-            
-        if(i == 15)
-             MSG(sd->log, "\n");
+        if(((i + 1) % 4 == 0) || (i == 15))
+            MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
     #endif
 
@@ -149,16 +144,13 @@ bool  kinematics_init(system_data* sd)
         mat_forward[row][col] = mat_dst[i];
 
         #if DEBUG
-        if(i == 0)
+        if(i < 1)
             MSG(sd->log, "[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
 
         MSG(sd->log, "%9.4f(%d%d) ", mat_forward[row][col], row, col);
         
-        if((i + 1) % 4 == 0)
-            MSG(sd->log, "\n");
-            
-        if(i == 15)
-             MSG(sd->log, "\n");
+        if(((i + 1) % 4 == 0) || (i == 15))
+            MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
         #endif
     }
 
@@ -168,32 +160,26 @@ bool  kinematics_init(system_data* sd)
     #if DEBUG
     for(i = 0 ; i < 16 ; i++)
     {
-        if(i == 0)
+        if(i < 1)
             MSG(sd->log, "[DEBUG] sd->mat_inverse(2D) = \n");
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%d%d) ", sd->mat_inverse[row][col], row, col);
         
-        if((i + 1) % 4 == 0)
-            MSG(sd->log, "\n");
-            
-        if(i == 15)
-             MSG(sd->log, "\n");
+        if(((i + 1) % 4 == 0) || (i == 15))
+            MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
     
     for(i = 0 ; i < 16 ; i++)
     {
-        if(i == 0)
+        if(i < 1)
             MSG(sd->log, "[DEBUG] sd->mat_forward(2D) = \n");
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%d%d) ", sd->mat_forward[row][col], row, col);
         
-        if((i + 1) % 4 == 0)
-            MSG(sd->log, "\n");
-            
-        if(i == 15)
-             MSG(sd->log, "\n");
+        if(((i + 1) % 4 == 0) || (i == 15))
+            MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
     #endif
 
@@ -201,7 +187,7 @@ bool  kinematics_init(system_data* sd)
 }
 
 /* inverse kinematics equation */
-bool  inverse_kinematics(system_data* sd)
+bool inverse_kinematics(system_data* sd)
 {
     float vx = sd->sv.vx;
     float vy = sd->sv.vy;
@@ -211,30 +197,30 @@ bool  inverse_kinematics(system_data* sd)
     
     memcpy(mat, sd->mat_inverse, sizeof(mat));
     
-    sd->sv.w1 = (1 / R) * (vx * mat[0][0] + vy * mat[0][1] + w0 * mat[0][2]);
-    sd->sv.w2 = (1 / R) * (vx * mat[1][0] + vy * mat[1][1] + w0 * mat[1][2]);
-    sd->sv.w3 = (1 / R) * (vx * mat[2][0] + vy * mat[2][1] + w0 * mat[2][2]);
-    sd->sv.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
+    sd->mot.in.w1 = (1 / R) * (vx * mat[0][0] + vy * mat[0][1] + w0 * mat[0][2]);
+    sd->mot.in.w2 = (1 / R) * (vx * mat[1][0] + vy * mat[1][1] + w0 * mat[1][2]);
+    sd->mot.in.w3 = (1 / R) * (vx * mat[2][0] + vy * mat[2][1] + w0 * mat[2][2]);
+    sd->mot.in.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] inverse_kinematics = \n");
     MSG(sd->log, "input : vx, vy, w0 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
     MSG(sd->log, "output : w1, w2, w3, w4 = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->sv.w1, sd->sv.w2,
-                                           sd->sv.w3, sd->sv.w4);
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.in.w1, sd->mot.in.w2,
+                                                 sd->mot.in.w3, sd->mot.in.w4);
     #endif
 
     return true;
 }
 
 /* forward kinematics equation */
-bool  forward_kinematics(system_data* sd)
+bool forward_kinematics(system_data* sd)
 {
-    float w1 = sd->pv.w1;
-    float w2 = sd->pv.w2;
-    float w3 = sd->pv.w3;
-    float w4 = sd->pv.w4;
+    float w1 = sd->mot.out.w1;
+    float w2 = sd->mot.out.w2;
+    float w3 = sd->mot.out.w3;
+    float w4 = sd->mot.out.w4;
     
     float mat[4][4] = {0};
     
@@ -253,5 +239,10 @@ bool  forward_kinematics(system_data* sd)
     #endif
 
     return true;
+}
+
+bool pid_control_init(system_data* sd)
+{
+    
 }
 
