@@ -28,7 +28,7 @@ float AGR2RPM(float w)
 
 float RPM2PWM(float rpm)
 {
-    return rpm;
+    return (rpm * DEFAULT_RPM2PWM_SLOPE);
 }
 
 /* motor control */
@@ -74,20 +74,20 @@ bool motor_control_update(system_data* sd)
         return false;
     }
 
-    sd->mot.fr1 = (w1 > 0) ? 1 : 0;
-    sd->mot.fr2 = (w2 > 0) ? 1 : 0;
-    sd->mot.fr3 = (w3 > 0) ? 1 : 0;
-    sd->mot.fr4 = (w4 > 0) ? 1 : 0;
+    sd->mot.fr1 = (w1 > 0) ? 1 : 0; fabs(w1);
+    sd->mot.fr2 = (w2 > 0) ? 1 : 0; fabs(w2);
+    sd->mot.fr3 = (w3 > 0) ? 1 : 0; fabs(w3);
+    sd->mot.fr4 = (w4 > 0) ? 1 : 0; fabs(w4);
+    
+    sd->mot.out.rpm1 = AGR2RPM(w1) * MIN2S;
+    sd->mot.out.rpm2 = AGR2RPM(w2) * MIN2S;
+    sd->mot.out.rpm3 = AGR2RPM(w3) * MIN2S;
+    sd->mot.out.rpm4 = AGR2RPM(w4) * MIN2S;
 
-    sd->mot.out.rpm1 = fabs (w1 / M_PI) * MIN2S;
-    sd->mot.out.rpm2 = fabs (w2 / M_PI) * MIN2S;
-    sd->mot.out.rpm3 = fabs (w3 / M_PI) * MIN2S;
-    sd->mot.out.rpm4 = fabs (w4 / M_PI) * MIN2S;
-
-    sd->mot.out.pwm1 = sd->mot.out.rpm1 * DEFAULT_RPM2PWM_SLOPE;
-    sd->mot.out.pwm2 = sd->mot.out.rpm2 * DEFAULT_RPM2PWM_SLOPE;
-    sd->mot.out.pwm3 = sd->mot.out.rpm3 * DEFAULT_RPM2PWM_SLOPE;
-    sd->mot.out.pwm4 = sd->mot.out.rpm4 * DEFAULT_RPM2PWM_SLOPE;
+    sd->mot.out.pwm1 = RPM2PWM(sd->mot.out.rpm1);
+    sd->mot.out.pwm2 = RPM2PWM(sd->mot.out.rpm2);
+    sd->mot.out.pwm3 = RPM2PWM(sd->mot.out.rpm3);
+    sd->mot.out.pwm4 = RPM2PWM(sd->mot.out.rpm4);
     
     #if DEBUG
     MSG(sd->log, "[DEBUG] motor_control_update = \n");
