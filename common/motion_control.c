@@ -31,6 +31,7 @@ bool inverse_kinematics(system_data* sd);
 
 /* pid control */
 bool pid_control_init(system_data* sd);
+bool pid_control_update(system_data* sd);
 
 /* motion control */
 bool motion_control_init(system_data* sd)
@@ -70,9 +71,10 @@ bool motion_control_update(system_data* sd)
  
     if(sd->sv.w0 > DEFAULT_MAX_W0)
         sd->sv.w0 = DEFAULT_MAX_W0;
-
-    inverse_kinematics(sd);
+    
     forward_kinematics(sd);
+    pid_control_update(sd);
+    inverse_kinematics(sd);
     
     return true;
 }
@@ -198,9 +200,9 @@ bool kinematics_init(system_data* sd)
 /* inverse kinematics equation */
 bool inverse_kinematics(system_data* sd)
 {
-    float vx = sd->sv.vx;
-    float vy = sd->sv.vy;
-    float w0 = sd->sv.w0;
+    float vx = sd->cv.vx;
+    float vy = sd->cv.vy;
+    float w0 = sd->cv.w0;
     
     float mat[4][4] = {0};
     
@@ -218,10 +220,10 @@ bool inverse_kinematics(system_data* sd)
     sd->mot.out.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
 
     #if DEBUG
-    MSG(sd->log, "[DEBUG] inverse_kinematics = \n");
-    MSG(sd->log, "input : vx, vy, w0 = \n");
+    MSG(sd->log, "[DEBUG] inverse_kinematics : \n");
+    MSG(sd->log, "vx, vy, w0 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
-    MSG(sd->log, "output : w1, w2, w3, w4 = \n");
+    MSG(sd->log, "w1, w2, w3, w4 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.w1, sd->mot.out.w2,
                                                  sd->mot.out.w3, sd->mot.out.w4);
     #endif
@@ -252,10 +254,10 @@ bool forward_kinematics(system_data* sd)
     sd->pv.w0 = (mat[2][0] * w1 + mat[2][1] * w2 + mat[2][2] * w3 + mat[2][3] * w4) * R;
 
     #if DEBUG
-    MSG(sd->log, "[DEBUG] forward_kinematics = \n");
-    MSG(sd->log, "input : w1, w2, w3, w4 = \n");
+    MSG(sd->log, "[DEBUG] forward_kinematics : \n");
+    MSG(sd->log, "w1, w2, w3, w4 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
-    MSG(sd->log, "output : vx, vy, w0 = \n");
+    MSG(sd->log, "vx, vy, w0 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", sd->pv.vx, sd->pv.vy, sd->pv.w0);
     #endif
 
@@ -264,6 +266,19 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
+    return true;
+}
+
+bool pid_control_update(system_data* sd)
+{	
+    sd->vx_err = sd->sv.vx - sd->pv.vx;
+    sd->vy_err = sd->sv.vx - sd->pv.vy;
+    sd->w0_err = sd->sv.vx - sd->pv.w0;
+    
+    sd->cv.vx = sd->vx_err;
+    sd->cv.vy = sd->vy_err;
+    sd->cv.w0 = sd->w0_err;
+
     return true;
 }
 

@@ -14,7 +14,7 @@
 #define DEFAULT_DIFF_DRV                4                   // 4WD
 #define DEFAULT_L1                      (450.0f/2)/1000.0f  // m, width/2
 #define DEFAULT_L2                      (480.0f/2)/1000.0f  // m, high/2
-#define DEFAULT_R                       (100.0f/2)/1000.0f  // m, Wheel radius
+#define DEFAULT_R                       (101.6f/2)/1000.0f  // m, Wheel radius
 #define DEFAULT_WET                     0.6f                // Kg, weight
 #define DEFAULT_MAX_VX                  0.6f                // m/s, velocity
 #define DEFAULT_MAX_VY                  0.6f                // m/s, velocity
@@ -23,7 +23,8 @@
 
 /* Motor Driver */
 #define DEFAULT_MOTOR_POWER             30.0f               // Watt (W)
-#define DEFAULT_RPM2PWM_SLOPE           (100.0f/270.0f)
+//#define DEFAULT_RPM2PWM_SLOPE           (100.0f/270.0f)
+#define DEFAULT_RPM2PWM_SLOPE           (90.0f/273.6f)
 
 /* Guide Sensor */
 #define DEFAULT_GUIDE_SENSOR_OFFSET     (450.0f/2)

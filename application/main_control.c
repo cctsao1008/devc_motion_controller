@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 #include <time.h>
 
@@ -44,12 +45,9 @@ int main(int argc, char *argv[]) {
     #endif
     
     sd = system_init();
-    
+
     if(sd == NULL)
-    {
-        MSG(sd->log, "sd = NULL !");
-        return true;
-    }
+        exit(0);
 
     struct timespec hrt = {
         /* seconds */
@@ -59,14 +57,14 @@ int main(int argc, char *argv[]) {
     };
 
     sd->mot.mode = 0;
-    //sd->sv.vx = 0.6f;
+    sd->sv.vx = 0.6f;
     sd->sv.vy = 0.6f;
-    //sd->sv.w0 = 0.6f;
+    sd->sv.w0 = 0.6f;
     
     motion_control_init(sd);
     motor_control_init(sd);
 
-    #if 0
+    #if 1
     motion_control_update(sd);
     motor_control_update(sd);
     
@@ -77,8 +75,8 @@ int main(int argc, char *argv[]) {
     while(1)
     {
         perf_begin();
-        motion_control_update(sd);
-        motor_control_update(sd);
+        //motion_control_update(sd);
+        //motor_control_update(sd);
         //MSG(sd->log, "%s \n", sd->log);
         memset(sd->log, 0, sizeof(sd->log));
         //usleep(200000);
@@ -86,13 +84,13 @@ int main(int argc, char *argv[]) {
         perf_end();
         
         double d = (double)(end - start) / CLOCKS_PER_SEC;
-        MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
+        //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
 
         hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         nanosleep(&hrt, NULL);
     }
 
-    system("pause");
+    //system("pause");
     return 0;
 }
 

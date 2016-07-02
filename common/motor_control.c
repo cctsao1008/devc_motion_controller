@@ -107,12 +107,17 @@ bool motor_control_update(system_data* sd)
                                          sd->mot.fr3, sd->mot.fr4);
     #endif
 
-    #if 1
+    #if 0
     /* fake data */
     sd->mot.in.w1 = w1;
     sd->mot.in.w2 = w2;
     sd->mot.in.w3 = w3;
     sd->mot.in.w4 = w4;
+    #else
+    sd->mot.in.w1 = 0.0f;
+    sd->mot.in.w2 = 0.0f;
+    sd->mot.in.w3 = 0.0f;
+    sd->mot.in.w4 = 0.0f;
     #endif
     
     if(sd->mot.mode == 0) // 0 : controlled by motion, VX, VY, W0

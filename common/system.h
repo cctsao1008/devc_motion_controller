@@ -17,12 +17,12 @@
 //#define MSG(buf, fmt, args...)	do { sprintf(buf, "" fmt "", ##args); } while(0)
 #define MSG(buf, fmt, args...)	do { printf("" fmt "", ##args); } while(0)
 
-typedef struct _sys_variable
+typedef struct _system_state
 {
     /* vx, vy, w0 & yaw in vehicle frame */
     float x, y, yaw;
     float vx, vy, w0;
-} sys_variable;
+} system_state;
 
 typedef struct _mot_data
 {
@@ -49,11 +49,12 @@ typedef struct _mot_data
     } in, out;
 } mot_data;
 
-typedef struct _pid_gain
+typedef struct _pid_data
 {
-    float kp, ki, kd;
+    float sv, cv, pv;
     float t1, t2;
-} pid_gain;
+    float kp, ki, kd;
+} pid_data;
 
 typedef struct _system_data
 {
@@ -61,14 +62,15 @@ typedef struct _system_data
     char log[256];
 
     /* motion control */
-    sys_variable    sv, cv, pv;
+    system_state sv, cv, pv;
+    float vx_err, vy_err, w0_err;
 
     float mat_inverse[4][4];
     float mat_forward[4][4];
 
     /* motor control */
     mot_data mot;
-    pid_gain pid;
+    pid_data pid[3];
 
     /* motor driver */
     void* hComm;
