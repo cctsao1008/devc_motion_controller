@@ -26,7 +26,19 @@ typedef struct _sys_variable
 
 typedef struct _mot_data
 {
-    bool  fr1, fr2, fr3, fr4;
+    uint8_t mode; // 0 : controlled by motion, VX, VY, W0
+                  // 1 : controlled by manual, RPM
+                  // 2 : controlled by manual, PWM
+
+    bool fr1, fr2, fr3, fr4;
+
+    struct
+    {
+        bool  fr1, fr2, fr3, fr4;
+        float rpm1, rpm2, rpm3, rpm4;
+        float pwm1, pwm2, pwm3, pwm4;
+
+    } man;
 
     struct
     {

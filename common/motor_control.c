@@ -53,12 +53,20 @@ bool motor_control_init(system_data* sd)
     return true;
 }
 
+uint8_t pwm_limiter(uint8_t pwm)
+{
+    if(pwm < 0)
+        return 0;
+    else if(pwm > 100)
+        return 100;
+}
+
 bool motor_control_update(system_data* sd)
 {
-    float w1 = sd->mot.in.w1;
-    float w2 = sd->mot.in.w2;
-    float w3 = sd->mot.in.w3;
-    float w4 = sd->mot.in.w4;
+    float w1 = sd->mot.out.w1;
+    float w2 = sd->mot.out.w2;
+    float w3 = sd->mot.out.w3;
+    float w4 = sd->mot.out.w4;
 
     if((sd == NULL) || (initialized != true))
     {
@@ -71,15 +79,15 @@ bool motor_control_update(system_data* sd)
     sd->mot.fr3 = (w3 > 0) ? 1 : 0;
     sd->mot.fr4 = (w4 > 0) ? 1 : 0;
 
-    sd->mot.in.rpm1 = fabs (w1 / M_PI) * MIN2S;
-    sd->mot.in.rpm2 = fabs (w2 / M_PI) * MIN2S;
-    sd->mot.in.rpm3 = fabs (w3 / M_PI) * MIN2S;
-    sd->mot.in.rpm4 = fabs (w4 / M_PI) * MIN2S;
+    sd->mot.out.rpm1 = fabs (w1 / M_PI) * MIN2S;
+    sd->mot.out.rpm2 = fabs (w2 / M_PI) * MIN2S;
+    sd->mot.out.rpm3 = fabs (w3 / M_PI) * MIN2S;
+    sd->mot.out.rpm4 = fabs (w4 / M_PI) * MIN2S;
 
-    sd->mot.in.pwm1 = sd->mot.in.rpm1 * DEFAULT_RPM2PWM_SLOPE;
-    sd->mot.in.pwm2 = sd->mot.in.rpm2 * DEFAULT_RPM2PWM_SLOPE;
-    sd->mot.in.pwm3 = sd->mot.in.rpm3 * DEFAULT_RPM2PWM_SLOPE;
-    sd->mot.in.pwm4 = sd->mot.in.rpm4 * DEFAULT_RPM2PWM_SLOPE;
+    sd->mot.out.pwm1 = sd->mot.out.rpm1 * DEFAULT_RPM2PWM_SLOPE;
+    sd->mot.out.pwm2 = sd->mot.out.rpm2 * DEFAULT_RPM2PWM_SLOPE;
+    sd->mot.out.pwm3 = sd->mot.out.rpm3 * DEFAULT_RPM2PWM_SLOPE;
+    sd->mot.out.pwm4 = sd->mot.out.rpm4 * DEFAULT_RPM2PWM_SLOPE;
     
     #if DEBUG
     MSG(sd->log, "[DEBUG] motor_control_update = \n");
@@ -87,12 +95,12 @@ bool motor_control_update(system_data* sd)
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
 
     MSG(sd->log, "input : rpm1, rpm2, rpm3, rpm4 = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.in.rpm1, sd->mot.in.rpm2,
-                                                 sd->mot.in.rpm3, sd->mot.in.rpm4);
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.rpm1, sd->mot.out.rpm2,
+                                                 sd->mot.out.rpm3, sd->mot.out.rpm4);
 
     MSG(sd->log, "input : pwm1, pwm2, pwm3, pwm4 = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.in.pwm1, sd->mot.in.pwm2,
-                                                 sd->mot.in.pwm3, sd->mot.in.pwm4);
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.pwm1, sd->mot.out.pwm2,
+                                                 sd->mot.out.pwm3, sd->mot.out.pwm4);
 
     MSG(sd->log, "input : fr1, fr2, fr3, fr4 = \n");
     MSG(sd->log, "%9d %9d %9d %9d \n\n", sd->mot.fr1, sd->mot.fr2,
@@ -101,11 +109,44 @@ bool motor_control_update(system_data* sd)
 
     #if 1
     /* fake data */
-    sd->mot.out.w1 = w1;
-    sd->mot.out.w2 = w2;
-    sd->mot.out.w3 = w3;
-    sd->mot.out.w4 = w4;
+    sd->mot.in.w1 = w1;
+    sd->mot.in.w2 = w2;
+    sd->mot.in.w3 = w3;
+    sd->mot.in.w4 = w4;
     #endif
+    
+    if(sd->mot.mode == 0) // 0 : controlled by motion, VX, VY, W0
+    {
+        MSG(sd->log, "[INFO] motor_control_updat, motion \n");
+        
+        pwm_limiter(sd->mot.out.pwm1);
+        pwm_limiter(sd->mot.out.pwm2);
+        pwm_limiter(sd->mot.out.pwm3);
+        pwm_limiter(sd->mot.out.pwm4);
+    }
+    else if(sd->mot.mode == 1) // 1 : controlled by manual, RPM
+    {
+        MSG(sd->log, "[INFO] motor_control_updat, manual RPM \n");
+
+        sd->mot.man.pwm1 = sd->mot.man.rpm1 * DEFAULT_RPM2PWM_SLOPE;
+        sd->mot.man.pwm2 = sd->mot.man.rpm2 * DEFAULT_RPM2PWM_SLOPE;
+        sd->mot.man.pwm3 = sd->mot.man.rpm3 * DEFAULT_RPM2PWM_SLOPE;
+        sd->mot.man.pwm4 = sd->mot.man.rpm4 * DEFAULT_RPM2PWM_SLOPE;
+        
+        pwm_limiter(sd->mot.man.pwm1);
+        pwm_limiter(sd->mot.man.pwm2);
+        pwm_limiter(sd->mot.man.pwm3);
+        pwm_limiter(sd->mot.man.pwm4);
+    }
+    else if(sd->mot.mode == 2) // 2 : controlled by manual, PWM
+    {
+        MSG(sd->log, "[INFO] motor_control_updat, manual PWM \n");
+        
+        pwm_limiter(sd->mot.man.pwm1);
+        pwm_limiter(sd->mot.man.pwm2);
+        pwm_limiter(sd->mot.man.pwm3);
+        pwm_limiter(sd->mot.man.pwm4);
+    }
 
     motor_driver_update(sd);
 

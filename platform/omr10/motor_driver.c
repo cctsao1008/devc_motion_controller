@@ -18,7 +18,7 @@
 #include "..\..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEBUG false
+#define DEBUG true
 
 /* protocol */
 #define STC1 0xEB // start code 1
@@ -210,9 +210,19 @@ bool motor_driver_init(system_data* sd)
  
 bool motor_driver_update(system_data* sd)
 {
+    uint8_t pwm1 = (uint8_t) sd->mot.out.pwm1;
+    uint8_t pwm2 = (uint8_t) sd->mot.out.pwm2;
+    uint8_t pwm3 = (uint8_t) sd->mot.out.pwm3;
+    uint8_t pwm4 = (uint8_t) sd->mot.out.pwm4;
+    
+    uint8_t fr1 = (uint8_t) sd->mot.fr1;
+    uint8_t fr2 = (uint8_t) sd->mot.fr2;
+    uint8_t fr3 = (uint8_t) sd->mot.fr3;
+    uint8_t fr4 = (uint8_t) sd->mot.fr4;
+
     uint8_t wb[128] = {STC1, STC2, 0xA3, 0x08,
-                        0x01, 0x00, 0x01, 0x00,
-                        0x64, 0x64, 0x64, 0x64};
+                        fr1,  fr2,  fr3,  fr4,
+                        pwm1, pwm2, pwm3, pwm4};
     
     uint8_t rb[128] = {0}, rc = 0, i;
 

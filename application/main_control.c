@@ -58,9 +58,10 @@ int main(int argc, char *argv[]) {
         .tv_nsec = 1000000000UL,
     };
 
+    sd->mot.mode = 0;
     //sd->sv.vx = 0.6f;
-    //sd->sv.vy = 0.6f;
-    sd->sv.w0 = 0.6f;
+    sd->sv.vy = 0.6f;
+    //sd->sv.w0 = 0.6f;
     
     motion_control_init(sd);
     motor_control_init(sd);

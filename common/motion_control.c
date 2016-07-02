@@ -212,18 +212,18 @@ bool inverse_kinematics(system_data* sd)
     
     memcpy(mat, sd->mat_inverse, sizeof(mat));
     
-    sd->mot.in.w1 = (1 / R) * (vx * mat[0][0] + vy * mat[0][1] + w0 * mat[0][2]);
-    sd->mot.in.w2 = (1 / R) * (vx * mat[1][0] + vy * mat[1][1] + w0 * mat[1][2]);
-    sd->mot.in.w3 = (1 / R) * (vx * mat[2][0] + vy * mat[2][1] + w0 * mat[2][2]);
-    sd->mot.in.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
+    sd->mot.out.w1 = (1 / R) * (vx * mat[0][0] + vy * mat[0][1] + w0 * mat[0][2]);
+    sd->mot.out.w2 = (1 / R) * (vx * mat[1][0] + vy * mat[1][1] + w0 * mat[1][2]);
+    sd->mot.out.w3 = (1 / R) * (vx * mat[2][0] + vy * mat[2][1] + w0 * mat[2][2]);
+    sd->mot.out.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] inverse_kinematics = \n");
     MSG(sd->log, "input : vx, vy, w0 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
     MSG(sd->log, "output : w1, w2, w3, w4 = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.in.w1, sd->mot.in.w2,
-                                                 sd->mot.in.w3, sd->mot.in.w4);
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.w1, sd->mot.out.w2,
+                                                 sd->mot.out.w3, sd->mot.out.w4);
     #endif
 
     return true;
@@ -232,10 +232,10 @@ bool inverse_kinematics(system_data* sd)
 /* forward kinematics equation */
 bool forward_kinematics(system_data* sd)
 {
-    float w1 = sd->mot.out.w1;
-    float w2 = sd->mot.out.w2;
-    float w3 = sd->mot.out.w3;
-    float w4 = sd->mot.out.w4;
+    float w1 = sd->mot.in.w1;
+    float w2 = sd->mot.in.w2;
+    float w3 = sd->mot.in.w3;
+    float w4 = sd->mot.in.w4;
     
     float mat[4][4] = {0};
     
@@ -264,6 +264,6 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
-    
+    return true;
 }
 
