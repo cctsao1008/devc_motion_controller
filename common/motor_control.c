@@ -44,7 +44,7 @@ bool motor_control_init(system_data* sd)
 
     if(initialized == true)
         return true;
-   
+
     if(!motor_driver_init(sd))
         return false;
 
@@ -107,12 +107,12 @@ bool motor_control_update(system_data* sd)
                                          sd->mot.fr3, sd->mot.fr4);
     #endif
 
-    #if 0
+    #if 1
     /* fake data */
-    sd->mot.in.w1 = w1;
-    sd->mot.in.w2 = w2;
-    sd->mot.in.w3 = w3;
-    sd->mot.in.w4 = w4;
+    sd->mot.in.w1 = 10.8110f;
+    sd->mot.in.w2 = 10.8110f;
+    sd->mot.in.w3 = 10.8110f;
+    sd->mot.in.w4 = 10.8110f;
     #else
     sd->mot.in.w1 = 0.0f;
     sd->mot.in.w2 = 0.0f;
@@ -137,7 +137,7 @@ bool motor_control_update(system_data* sd)
         sd->mot.man.pwm2 = sd->mot.man.rpm2 * DEFAULT_RPM2PWM_SLOPE;
         sd->mot.man.pwm3 = sd->mot.man.rpm3 * DEFAULT_RPM2PWM_SLOPE;
         sd->mot.man.pwm4 = sd->mot.man.rpm4 * DEFAULT_RPM2PWM_SLOPE;
-        
+
         pwm_limiter(sd->mot.man.pwm1);
         pwm_limiter(sd->mot.man.pwm2);
         pwm_limiter(sd->mot.man.pwm3);
@@ -146,7 +146,7 @@ bool motor_control_update(system_data* sd)
     else if(sd->mot.mode == 2) // 2 : controlled by manual, PWM
     {
         MSG(sd->log, "[INFO] motor_control_updat, manual PWM \n");
-        
+
         pwm_limiter(sd->mot.man.pwm1);
         pwm_limiter(sd->mot.man.pwm2);
         pwm_limiter(sd->mot.man.pwm3);

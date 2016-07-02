@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     QueryPerformanceCounter(&t2);
     printf("Lasting Time: %lf\n",(t2.QuadPart-t1.QuadPart)/(double)(ts.QuadPart));
     #endif
-    
+
     sd = system_init();
 
     if(sd == NULL)
@@ -58,16 +58,16 @@ int main(int argc, char *argv[]) {
 
     sd->mot.mode = 0;
     sd->sv.vx = 0.6f;
-    sd->sv.vy = 0.6f;
-    sd->sv.w0 = 0.6f;
-    
+    //sd->sv.vy = 0.6f;
+    //sd->sv.w0 = 0.6f;
+
     motion_control_init(sd);
     motor_control_init(sd);
 
     #if 0
     motion_control_update(sd);
     motor_control_update(sd);
-    
+
     motion_control_update(sd);
     motor_control_update(sd);
     #endif
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
         //usleep(200000);
         //mdelay(200);
         perf_end();
-        
+
         double d = (double)(end - start) / CLOCKS_PER_SEC;
         //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
 

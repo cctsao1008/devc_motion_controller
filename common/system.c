@@ -28,12 +28,12 @@ void timer3_callback_handler(int signum);
 system_data* system_init(void)
 {
     MSG(data.log, "%s", "[INFO] system_init... \n");
-    
+
     // Register signal and signal handler
     signal(SIGINT, signal_callback_handler);
 
     system_data* sd = (system_data*)malloc(sizeof(system_data));
-    
+
     if(sd == NULL)
         MSG(data.log, "%s", "[ERROR] system_init, failed! \n");
 

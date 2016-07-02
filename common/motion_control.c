@@ -74,8 +74,13 @@ bool motion_control_update(system_data* sd)
     if(sd->sv.w0 > DEFAULT_MAX_W0)
         sd->sv.w0 = DEFAULT_MAX_W0;
 
+    /* calculating feedback signals, vx, vy, w0 */
     forward_kinematics(sd);
+
+    /* calculating output signals, vx, vy, w0 */
     pid_control_update(sd);
+
+    /* calculating output signals, w1, w2, w3, w4 */
     inverse_kinematics(sd);
     
     return true;
@@ -85,26 +90,26 @@ bool motion_control_update(system_data* sd)
 bool kinematics_init(system_data* sd)
 {
     uint16_t i = 0, row = 0, col = 0;
-    
+
     float mat_inverse[4][4] = {{1.0f,  1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0},
                                {1.0f, -1.0f,  (DEFAULT_L1 + DEFAULT_L2), 0},
                                {1.0f, -1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0},
                                {1.0f,  1.0f,  (DEFAULT_L1 + DEFAULT_L2), 1},};
 
     float mat_forward[4][4] = {0};
-    
+
     float mat_src[16] = {0};
     float mat_dst[16] = {0};
-    
+
     if(sd == NULL)
     {
         MSG(sd->log, "[ERROR] kinematics_init, failed! \n");
         return false;
     }
-    
+
     if(initialized == true)
         return true;
-    
+
     #if DEBUG
     for(i = 0 ; i < 16 ; i++)
     {
@@ -132,13 +137,13 @@ bool kinematics_init(system_data* sd)
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
     #endif
-     
+
     if(!invert4x4(mat_src, mat_dst))
     {
         MSG(sd->log, "[ERROR] matrix singular! \n");
         return false;
     }
-    
+
     #if DEBUG
     for(i = 0 ; i < 16 ; i++)
     {
@@ -169,7 +174,7 @@ bool kinematics_init(system_data* sd)
 
     memcpy(sd->mat_inverse, mat_inverse, sizeof(mat_inverse));
     memcpy(sd->mat_forward, mat_forward, sizeof(mat_forward));
-    
+
     #if DEBUG
     for(i = 0 ; i < 16 ; i++)
     {
@@ -182,7 +187,7 @@ bool kinematics_init(system_data* sd)
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
-    
+
     for(i = 0 ; i < 16 ; i++)
     {
         if(i < 1)
@@ -268,29 +273,42 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
-    sd->pid[0].kp = 1.0f;
-    sd->pid[0].ki = 0.0f;
-    sd->pid[0].kd = 0.0f;
+    sd->vx_ga.kp = 1.0f;
+    sd->vx_ga.ki = 0.0f;
+    sd->vx_ga.kd = 0.0f;
     
-    sd->pid[1].kp = 1.0f;
-    sd->pid[1].ki = 0.0f;
-    sd->pid[1].kd = 0.0f;
+    sd->vy_ga.kp = 1.0f;
+    sd->vy_ga.ki = 0.0f;
+    sd->vy_ga.kd = 0.0f;
     
-    sd->pid[2].kp = 1.0f;
-    sd->pid[2].ki = 0.0f;
-    sd->pid[2].kd = 0.0f;
+    sd->w0_ga.kp = 1.0f;
+    sd->w0_ga.ki = 0.0f;
+    sd->w0_ga.kd = 0.0f;
 
     return true;
 }
 
 bool pid_control_update(system_data* sd)
 {	
-    float vx_err, vy_err, w0_err;
+    static float vx_err_last, vy_err_last, w0_err_last;
+    static float vx_err, vy_err, w0_err;
+
+    static float vx_err_sum_last, vy_err_sum_last, w0_err_sum_last;
+    static float vx_err_sum, vy_err_sum, w0_err_sum;
+
+    static float vx_err_diff, vy_err_diff, w0_err_diff;
+
 
     sd->t_last = sd->t_curr;
     sd->t_curr = clock();
 
     sd->t_delta = sd->t_curr - sd->t_last;
+    
+    if(sd->t_delta < 0.0f)
+    {
+        MSG(sd->log, "[ERROR] pid_control_update, failed! \n");
+        return false;
+    }
     
     #if DEBUG
     MSG(sd->log, "[DEBUG] pid_control_update : \n");
@@ -299,12 +317,29 @@ bool pid_control_update(system_data* sd)
     #endif
 
     vx_err = sd->sv.vx - sd->pv.vx;
-    vy_err = sd->sv.vx - sd->pv.vy;
-    w0_err = sd->sv.vx - sd->pv.w0;
+    vy_err = sd->sv.vy - sd->pv.vy;
+    w0_err = sd->sv.w0 - sd->pv.w0;
+
+    vx_err_sum = vx_err * sd->t_delta + vx_err_sum_last;
+    vy_err_sum = vy_err * sd->t_delta + vy_err_sum_last;
+    w0_err_sum = w0_err * sd->t_delta + w0_err_sum_last;
+
+    vx_err_diff = (vx_err - vx_err_last) / sd->t_delta;
+    vy_err_diff = (vy_err - vy_err_last) / sd->t_delta;
+    w0_err_diff = (w0_err - w0_err_last) / sd->t_delta;
+
+    /* PID */
+    sd->cv.vx = (sd->vx_ga.kp * vx_err) + (sd->vx_ga.ki * vx_err_sum) + (sd->vx_ga.kd * vx_err_diff);
+    sd->cv.vy = (sd->vy_ga.kp * vy_err) + (sd->vy_ga.ki * vy_err_sum) + (sd->vy_ga.kd * vy_err_diff);
+    sd->cv.w0 = (sd->w0_ga.kp * w0_err) + (sd->w0_ga.ki * w0_err_sum) + (sd->w0_ga.kd * w0_err_diff);
     
-    sd->cv.vx = vx_err;
-    sd->cv.vy = vy_err;
-    sd->cv.w0 = w0_err;
+    vx_err_last = vx_err;
+    vy_err_last = vy_err;
+    w0_err_last = w0_err;
+    
+    vx_err_sum_last = vx_err_sum;
+    vy_err_sum_last = vy_err_sum;
+    w0_err_sum_last = w0_err_sum;
 
     return true;
 }

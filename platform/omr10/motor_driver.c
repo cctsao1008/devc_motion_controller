@@ -32,18 +32,18 @@ static char* com_port = (char*)"\\\\.\\COM6";
 uint8_t bcc(char *data, uint16_t len)
 {
     int i = 0, bcc = 0xFF;
-    
+
     for(i = 0 ; i < len ; i++)
     {
         bcc ^= data[i];
     }
-    
+
     bcc = bcc & 0xFF;
-    
+
     #if DEBUG
     MSG(sd->log, "[DEBUG] CRC-32 = 0x%X \n", bcc);
     #endif
-    
+
     return bcc;
 }
 
@@ -102,7 +102,6 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
     SecureZeroMemory(&dcb, sizeof(DCB));
     dcb.DCBlength = sizeof(DCB);
 
-
     if(!GetCommState(hComm, &dcb))
     {
         MSG(sd->log, "[ERROR] setup_port(GetCommState), failed! \n");
@@ -138,7 +137,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
         MSG(sd->log, "[ERROR] setup_port(SetCommTimeouts), failed! \n");
         return false;
     }
-        
+ 
     if(!GetCommState(hComm, &dcb))
     {
         MSG(sd->log, "[ERROR] setup_port(GetCommState), failed! \n");
@@ -146,6 +145,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
     }
 
     MSG(sd->log, "[INFO] setup_port, passed. \n");
+
     return true;
 }
 
@@ -158,9 +158,12 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
 DWORD uart_rx(HANDLE hComm, uint8_t * buffer, int buffersize)
 {
     DWORD dwBytesRead = 0;
-    if(!ReadFile(hComm, buffer, buffersize, &dwBytesRead, NULL)){
+
+    if(!ReadFile(hComm, buffer, buffersize, &dwBytesRead, NULL))
+    {
         //handle error
     }
+
     return dwBytesRead;
 }
 
@@ -173,9 +176,12 @@ DWORD uart_tx(HANDLE hComm, uint8_t * data, int length)
 {
 
     DWORD dwBytesRead = 0;
-    if(!WriteFile(hComm, data, length, &dwBytesRead, NULL)){
+
+    if(!WriteFile(hComm, data, length, &dwBytesRead, NULL))
+    {
         //handle error
     }
+
     return dwBytesRead;
 
 }
@@ -196,10 +202,10 @@ bool motor_driver_init(system_data* sd)
     fflush(stdout);
 
     sd->hComm = open_port(com_port);
-    
+
     if(sd->hComm ==INVALID_HANDLE_VALUE)
         return false;
-    
+
     if(!setup_port(sd->hComm, CBR_9600, 8, NOPARITY, ONESTOPBIT))
         return false;
 
@@ -214,7 +220,7 @@ bool motor_driver_update(system_data* sd)
     uint8_t pwm2 = (uint8_t) sd->mot.out.pwm2;
     uint8_t pwm3 = (uint8_t) sd->mot.out.pwm3;
     uint8_t pwm4 = (uint8_t) sd->mot.out.pwm4;
-    
+
     uint8_t fr1 = (uint8_t) sd->mot.fr1;
     uint8_t fr2 = (uint8_t) sd->mot.fr2;
     uint8_t fr3 = (uint8_t) sd->mot.fr3;
@@ -223,7 +229,7 @@ bool motor_driver_update(system_data* sd)
     uint8_t wb[128] = {STC1, STC2, 0xA3, 0x08,
                         fr1,  fr2,  fr3,  fr4,
                         pwm1, pwm2, pwm3, pwm4};
-    
+
     uint8_t rb[128] = {0}, rc = 0, i;
 
     if((sd == NULL) || (initialized != true))
@@ -238,7 +244,7 @@ bool motor_driver_update(system_data* sd)
 
     #if DEBUG
     rc = uart_rx(sd->hComm, rb,13);
-    
+
     if(rc > 0)
     {
         for(i = 0 ; i < rc ; i++)
