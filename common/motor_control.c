@@ -91,18 +91,18 @@ bool motor_control_update(system_data* sd)
     
     #if DEBUG
     MSG(sd->log, "[DEBUG] motor_control_update = \n");
-    MSG(sd->log, "input : w1, w2, w3, w4 = \n");
+    MSG(sd->log, "output : w1, w2, w3, w4 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
 
-    MSG(sd->log, "input : rpm1, rpm2, rpm3, rpm4 = \n");
+    MSG(sd->log, "output : rpm1, rpm2, rpm3, rpm4 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.rpm1, sd->mot.out.rpm2,
                                                  sd->mot.out.rpm3, sd->mot.out.rpm4);
 
-    MSG(sd->log, "input : pwm1, pwm2, pwm3, pwm4 = \n");
+    MSG(sd->log, "output : pwm1, pwm2, pwm3, pwm4 = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.pwm1, sd->mot.out.pwm2,
                                                  sd->mot.out.pwm3, sd->mot.out.pwm4);
 
-    MSG(sd->log, "input : fr1, fr2, fr3, fr4 = \n");
+    MSG(sd->log, "output : fr1, fr2, fr3, fr4 = \n");
     MSG(sd->log, "%9d %9d %9d %9d \n\n", sd->mot.fr1, sd->mot.fr2,
                                          sd->mot.fr3, sd->mot.fr4);
     #endif
