@@ -18,7 +18,7 @@
 #include "..\..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEBUG true
+#define DEBUG false
 
 /* protocol */
 #define STC1 0xEB // start code 1

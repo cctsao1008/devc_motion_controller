@@ -52,7 +52,6 @@ typedef struct _mot_data
 typedef struct _pid_data
 {
     float sv, cv, pv;
-    float t1, t2;
     float kp, ki, kd;
 } pid_data;
 
@@ -63,7 +62,6 @@ typedef struct _system_data
 
     /* motion control */
     system_state sv, cv, pv;
-    float vx_err, vy_err, w0_err;
 
     float mat_inverse[4][4];
     float mat_forward[4][4];
@@ -71,6 +69,7 @@ typedef struct _system_data
     /* motor control */
     mot_data mot;
     pid_data pid[3];
+    uint32_t t_last, t_curr, t_delta;
 
     /* motor driver */
     void* hComm;

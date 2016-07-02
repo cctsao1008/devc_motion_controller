@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     motion_control_init(sd);
     motor_control_init(sd);
 
-    #if 1
+    #if 0
     motion_control_update(sd);
     motor_control_update(sd);
     
@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
     while(1)
     {
         perf_begin();
-        //motion_control_update(sd);
-        //motor_control_update(sd);
+        motion_control_update(sd);
+        motor_control_update(sd);
         //MSG(sd->log, "%s \n", sd->log);
         memset(sd->log, 0, sizeof(sd->log));
         //usleep(200000);

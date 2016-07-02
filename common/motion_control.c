@@ -49,6 +49,8 @@ bool motion_control_init(system_data* sd)
     
     if(!kinematics_init(sd))
         return false;
+
+    pid_control_init(sd);
     
     initialized = true;
 
@@ -71,7 +73,7 @@ bool motion_control_update(system_data* sd)
  
     if(sd->sv.w0 > DEFAULT_MAX_W0)
         sd->sv.w0 = DEFAULT_MAX_W0;
-    
+
     forward_kinematics(sd);
     pid_control_update(sd);
     inverse_kinematics(sd);
@@ -221,9 +223,9 @@ bool inverse_kinematics(system_data* sd)
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] inverse_kinematics : \n");
-    MSG(sd->log, "vx, vy, w0 = \n");
+    MSG(sd->log, "vx, vy (m/s), w0 (rad/s) = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", vx, vy, w0);
-    MSG(sd->log, "w1, w2, w3, w4 = \n");
+    MSG(sd->log, "w1, w2, w3, w4 (rad/s) = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.out.w1, sd->mot.out.w2,
                                                  sd->mot.out.w3, sd->mot.out.w4);
     #endif
@@ -255,9 +257,9 @@ bool forward_kinematics(system_data* sd)
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] forward_kinematics : \n");
-    MSG(sd->log, "w1, w2, w3, w4 = \n");
+    MSG(sd->log, "w1, w2, w3, w4 (rad/s) = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", w1, w2, w3, w4);
-    MSG(sd->log, "vx, vy, w0 = \n");
+    MSG(sd->log, "vx, vy (m/s), w0 (rad/s) = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f \n\n", sd->pv.vx, sd->pv.vy, sd->pv.w0);
     #endif
 
@@ -266,18 +268,43 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
+    sd->pid[0].kp = 1.0f;
+    sd->pid[0].ki = 0.0f;
+    sd->pid[0].kd = 0.0f;
+    
+    sd->pid[1].kp = 1.0f;
+    sd->pid[1].ki = 0.0f;
+    sd->pid[1].kd = 0.0f;
+    
+    sd->pid[2].kp = 1.0f;
+    sd->pid[2].ki = 0.0f;
+    sd->pid[2].kd = 0.0f;
+
     return true;
 }
 
 bool pid_control_update(system_data* sd)
 {	
-    sd->vx_err = sd->sv.vx - sd->pv.vx;
-    sd->vy_err = sd->sv.vx - sd->pv.vy;
-    sd->w0_err = sd->sv.vx - sd->pv.w0;
+    float vx_err, vy_err, w0_err;
+
+    sd->t_last = sd->t_curr;
+    sd->t_curr = clock();
+
+    sd->t_delta = sd->t_curr - sd->t_last;
     
-    sd->cv.vx = sd->vx_err;
-    sd->cv.vy = sd->vy_err;
-    sd->cv.w0 = sd->w0_err;
+    #if DEBUG
+    MSG(sd->log, "[DEBUG] pid_control_update : \n");
+    MSG(sd->log, "t_last, t_curr, t_delta (ms) = \n");
+    MSG(sd->log, "%9.4ld %9.4ld %9.4ld \n\n", sd->t_last, sd->t_curr, sd->t_delta);
+    #endif
+
+    vx_err = sd->sv.vx - sd->pv.vx;
+    vy_err = sd->sv.vx - sd->pv.vy;
+    w0_err = sd->sv.vx - sd->pv.w0;
+    
+    sd->cv.vx = vx_err;
+    sd->cv.vy = vy_err;
+    sd->cv.w0 = w0_err;
 
     return true;
 }
