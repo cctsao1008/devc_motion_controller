@@ -51,16 +51,17 @@ int main(int argc, char *argv[]) {
 
     struct timespec hrt = {
         /* seconds */
-        .tv_sec  = 1,
-        /* nanoseconds */  
+        .tv_sec  = 0,
+        /* nanoseconds */
         .tv_nsec = 1000000000UL,
     };
 
     sd->mot.mode = 0;
-    sd->sv.vx = 0.6f;
+    //sd->sv.vx = 0.6f;
     //sd->sv.vy = 0.6f;
     //sd->sv.w0 = 0.6f;
 
+    commander_init(sd);
     motion_control_init(sd);
     motor_control_init(sd);
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
         perf_end();
 
         double d = (double)(end - start) / CLOCKS_PER_SEC;
-        //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 2.0f * 100));
+        MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 1.0f * 100));
 
         hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         nanosleep(&hrt, NULL);

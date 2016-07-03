@@ -5,7 +5,7 @@
  *
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -46,12 +46,12 @@ bool motion_control_init(system_data* sd)
 
     if(initialized == true)
         return true;
-    
+
     if(!kinematics_init(sd))
         return false;
 
     pid_control_init(sd);
-    
+
     initialized = true;
 
     return true;
@@ -70,7 +70,7 @@ bool motion_control_update(system_data* sd)
 
     if(sd->sv.vy > DEFAULT_MAX_VY)
         sd->sv.vy = DEFAULT_MAX_VY;
- 
+
     if(sd->sv.w0 > DEFAULT_MAX_W0)
         sd->sv.w0 = DEFAULT_MAX_W0;
 
@@ -82,11 +82,11 @@ bool motion_control_update(system_data* sd)
 
     /* calculating output signals, w1, w2, w3, w4 */
     inverse_kinematics(sd);
-    
+
     return true;
 }
 
-/* get the inverted matrix of RV(4x4) */ 
+/* get the inverted matrix of RV(4x4) */
 bool kinematics_init(system_data* sd)
 {
     uint16_t i = 0, row = 0, col = 0;
@@ -118,7 +118,7 @@ bool kinematics_init(system_data* sd)
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%d%d) ", mat_inverse[row][col], row, col);
-        
+
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
@@ -132,7 +132,7 @@ bool kinematics_init(system_data* sd)
             MSG(sd->log, "[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
 
         MSG(sd->log, "%9.4f(%2d) ", mat_src[i], i);
-        
+
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
@@ -152,7 +152,7 @@ bool kinematics_init(system_data* sd)
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%2d) ", mat_dst[i], i);
-        
+
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
@@ -166,7 +166,7 @@ bool kinematics_init(system_data* sd)
             MSG(sd->log, "[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
 
         MSG(sd->log, "%9.4f(%d%d) ", mat_forward[row][col], row, col);
-        
+
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
@@ -183,7 +183,7 @@ bool kinematics_init(system_data* sd)
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%d%d) ", sd->mat_inverse[row][col], row, col);
-        
+
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
@@ -195,7 +195,7 @@ bool kinematics_init(system_data* sd)
 
         row = (i / 4); col = (i % 4);
         MSG(sd->log, "%9.4f(%d%d) ", sd->mat_forward[row][col], row, col);
-        
+
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
@@ -210,17 +210,17 @@ bool inverse_kinematics(system_data* sd)
     float vx = sd->cv.vx;
     float vy = sd->cv.vy;
     float w0 = sd->cv.w0;
-    
+
     float mat[4][4] = {0};
-    
+
     if(sd == NULL)
     {
         MSG(sd->log, "[ERROR] inverse_kinematics, failed! \n");
         return false;
     }
-    
+
     memcpy(mat, sd->mat_inverse, sizeof(mat));
-    
+
     sd->mot.out.w1 = (1 / R) * (vx * mat[0][0] + vy * mat[0][1] + w0 * mat[0][2]);
     sd->mot.out.w2 = (1 / R) * (vx * mat[1][0] + vy * mat[1][1] + w0 * mat[1][2]);
     sd->mot.out.w3 = (1 / R) * (vx * mat[2][0] + vy * mat[2][1] + w0 * mat[2][2]);
@@ -245,15 +245,15 @@ bool forward_kinematics(system_data* sd)
     float w2 = sd->mot.in.w2;
     float w3 = sd->mot.in.w3;
     float w4 = sd->mot.in.w4;
-    
+
     float mat[4][4] = {0};
-    
+
     if(sd == NULL)
     {
         MSG(sd->log, "[ERROR] forward_kinematics, failed! \n");
         return false;
     }
-    
+
     memcpy(mat, sd->mat_forward, sizeof(mat));
 
     sd->pv.vx = (mat[0][0] * w1 + mat[0][1] * w2 + mat[0][2] * w3 + mat[0][3] * w4) * R;
@@ -273,23 +273,23 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
-    sd->vx_ga.kp = 1.0f;
+    sd->vx_ga.kp = 1.5f;
     sd->vx_ga.ki = 0.0f;
-    sd->vx_ga.kd = 0.0f;
-    
-    sd->vy_ga.kp = 1.0f;
+    sd->vx_ga.kd = 0.5f;
+
+    sd->vy_ga.kp = 1.5f;
     sd->vy_ga.ki = 0.0f;
-    sd->vy_ga.kd = 0.0f;
-    
-    sd->w0_ga.kp = 1.0f;
+    sd->vy_ga.kd = 0.3f;
+
+    sd->w0_ga.kp = 1.5f;
     sd->w0_ga.ki = 0.0f;
-    sd->w0_ga.kd = 0.0f;
+    sd->w0_ga.kd = 0.3f;
 
     return true;
 }
 
 bool pid_control_update(system_data* sd)
-{	
+{
     static float vx_err_last, vy_err_last, w0_err_last;
     static float vx_err, vy_err, w0_err;
 
@@ -298,18 +298,20 @@ bool pid_control_update(system_data* sd)
 
     static float vx_err_diff, vy_err_diff, w0_err_diff;
 
+    static float p_out[3], i_out[3], d_out[3];
+
 
     sd->t_last = sd->t_curr;
     sd->t_curr = clock();
 
     sd->t_delta = sd->t_curr - sd->t_last;
-    
+
     if(sd->t_delta < 0.0f)
     {
         MSG(sd->log, "[ERROR] pid_control_update, failed! \n");
         return false;
     }
-    
+
     #if DEBUG
     MSG(sd->log, "[DEBUG] pid_control_update : \n");
     MSG(sd->log, "t_last, t_curr, t_delta (ms) = \n");
@@ -320,23 +322,38 @@ bool pid_control_update(system_data* sd)
     vy_err = sd->sv.vy - sd->pv.vy;
     w0_err = sd->sv.w0 - sd->pv.w0;
 
-    vx_err_sum = vx_err * sd->t_delta + vx_err_sum_last;
-    vy_err_sum = vy_err * sd->t_delta + vy_err_sum_last;
-    w0_err_sum = w0_err * sd->t_delta + w0_err_sum_last;
+    vx_err_sum = vx_err * (sd->t_delta / 1000.0f) + vx_err_sum_last;
+    vy_err_sum = vy_err * (sd->t_delta / 1000.0f) + vy_err_sum_last;
+    w0_err_sum = w0_err * (sd->t_delta / 1000.0f) + w0_err_sum_last;
 
-    vx_err_diff = (vx_err - vx_err_last) / sd->t_delta;
-    vy_err_diff = (vy_err - vy_err_last) / sd->t_delta;
-    w0_err_diff = (w0_err - w0_err_last) / sd->t_delta;
+    vx_err_diff = (vx_err - vx_err_last) / (sd->t_delta / 1000.0f) ;
+    vy_err_diff = (vy_err - vy_err_last) / (sd->t_delta / 1000.0f) ;
+    w0_err_diff = (w0_err - w0_err_last) / (sd->t_delta / 1000.0f) ;
 
     /* PID */
-    sd->cv.vx = (sd->vx_ga.kp * vx_err) + (sd->vx_ga.ki * vx_err_sum) + (sd->vx_ga.kd * vx_err_diff);
-    sd->cv.vy = (sd->vy_ga.kp * vy_err) + (sd->vy_ga.ki * vy_err_sum) + (sd->vy_ga.kd * vy_err_diff);
-    sd->cv.w0 = (sd->w0_ga.kp * w0_err) + (sd->w0_ga.ki * w0_err_sum) + (sd->w0_ga.kd * w0_err_diff);
-    
+    p_out[0] = sd->vx_ga.kp * vx_err;
+    i_out[0] = sd->vx_ga.ki * vx_err_sum;
+    d_out[0] = sd->vx_ga.kd * vx_err_diff;
+
+    p_out[1] = sd->vy_ga.kp * vy_err;
+    i_out[1] = sd->vy_ga.ki * vy_err_sum;
+    d_out[1] = sd->vy_ga.kd * vy_err_diff;
+
+    p_out[2] = sd->w0_ga.kp * w0_err;
+    i_out[2] = sd->w0_ga.ki * w0_err_sum;
+    d_out[2] = sd->w0_ga.kd * w0_err_diff;
+
+    MSG(sd->log, "vx, pid = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last);
+
+    sd->cv.vx = p_out[0] + i_out[0] + d_out[0];
+    sd->cv.vy = p_out[1] + i_out[1] + d_out[1];
+    sd->cv.w0 = p_out[2] + i_out[2] + d_out[2];
+
     vx_err_last = vx_err;
     vy_err_last = vy_err;
     w0_err_last = w0_err;
-    
+
     vx_err_sum_last = vx_err_sum;
     vy_err_sum_last = vy_err_sum;
     w0_err_sum_last = w0_err_sum;
