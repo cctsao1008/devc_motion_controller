@@ -32,6 +32,21 @@
 
 bool keypad_input_check(system_data* sd);
 
+float vx_limiter(float vx)
+{
+    return vx;
+}
+
+float vy_limiter(float vy)
+{
+    return vy;
+}
+
+float w0_limiter(float w0)
+{
+    return w0;
+}
+
 bool commander_init(system_data* sd)
 {
     pthread_t tid;
@@ -42,10 +57,13 @@ bool commander_init(system_data* sd)
 
 bool keypad_input_check(system_data* sd)
 {
+    float vx, vy, w0;
     int c;
 
     while(1)
     {
+        vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
+
         c = getch();
         //MSG(sd->log, "[DEBUG] keypad_input_check, loop... (0x%X) \n", c);
 
@@ -62,21 +80,29 @@ bool keypad_input_check(system_data* sd)
         if (c == KEY_1)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_1 : \n");
+            sd->sv.vx = vx_limiter(vx - 0.1f);
+            sd->sv.vy = vy_limiter(vy - 0.1f);
         }
 
         if (c == KEY_2)
         {
-            //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_2 : \n");
+            MSG(sd->log, "[DEBUG] keypad_input_check, KEY_2 : \n");
+            sd->sv.vx = vx_limiter(vx - 0.1f);
+
+            printf("vx = %f \n", sd->sv.vx);
         }
 
         if (c == KEY_3)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_3 : \n");
+            sd->sv.vx = vx_limiter(vx + 0.1f);
+            sd->sv.vy = vy_limiter(vy - 0.1f);
         }
 
         if (c == KEY_4)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_4 : \n");
+            sd->sv.vy = vy_limiter(vy + 0.1f);
         }
 
         if (c == KEY_5)
@@ -89,27 +115,33 @@ bool keypad_input_check(system_data* sd)
         if (c == KEY_6)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_6 : \n");
+            sd->sv.vy = vy_limiter(vy - 0.1f);
         }
 
         if (c == KEY_7)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_7 : \n");
+            sd->sv.vx = vx_limiter(vx - 0.1f);
+            sd->sv.vy = vy_limiter(vy + 0.1f);
         }
 
         if (c == KEY_8)
         {
-            sd->sv.vx += 0.1f;
+            MSG(sd->log, "[DEBUG] keypad_input_check, KEY_8 : \n");
+            sd->sv.vx = vx_limiter(vx + 0.1f);
+
+            printf("vx = %f \n", sd->sv.vx);
         }
 
         if (c == KEY_9)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_9 : \n");
+            sd->sv.vx = vx_limiter(vx + 0.1f);
+            sd->sv.vy = vy_limiter(vy + 0.1f);
         }
 
         usleep(50000);
     }
-
-
 
     return true;
 }

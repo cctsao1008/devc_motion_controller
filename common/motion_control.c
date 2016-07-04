@@ -19,7 +19,7 @@
 
 #include "small-matrix-inverse\invert4x4_c.h"
 
-#define DEBUG true
+#define DEBUG false
 
 static bool initialized = false;
 static float R = DEFAULT_R;
@@ -122,12 +122,14 @@ bool kinematics_init(system_data* sd)
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
+    #endif
 
     for(i = 0; i < 16; i++)
     {
         row = (i / 4); col = (i % 4);
         mat_src[i] = mat_inverse[row][col];
 
+        #if DEBUG
         if(i < 1)
             MSG(sd->log, "[DEBUG] mat_inverse(2D) to  mat_src(1D) \n");
 
@@ -135,8 +137,8 @@ bool kinematics_init(system_data* sd)
 
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
+        #endif
     }
-    #endif
 
     if(!invert4x4(mat_src, mat_dst))
     {
@@ -156,12 +158,14 @@ bool kinematics_init(system_data* sd)
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
     }
+    #endif
 
     for(i = 0; i < 16; i++)
     {
         row = (i / 4); col = (i % 4);
         mat_forward[row][col] = mat_dst[i];
 
+        #if DEBUG
         if(i < 1)
             MSG(sd->log, "[DEBUG] mat_dst(1D) to  mat_forward(2D) \n");
 
@@ -169,8 +173,8 @@ bool kinematics_init(system_data* sd)
 
         if(((i + 1) % 4 == 0) || (i == 15))
             MSG(sd->log, "%s", (i < 15)? "\n":"\n\n");
+        #endif
     }
-    #endif
 
     memcpy(sd->mat_inverse, mat_inverse, sizeof(mat_inverse));
     memcpy(sd->mat_forward, mat_forward, sizeof(mat_forward));
@@ -273,17 +277,17 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
-    sd->vx_ga.kp = 1.5f;
+    sd->vx_ga.kp = 1.0f;
     sd->vx_ga.ki = 0.0f;
-    sd->vx_ga.kd = 0.5f;
+    sd->vx_ga.kd = 0.1f;
 
-    sd->vy_ga.kp = 1.5f;
+    sd->vy_ga.kp = 1.0f;
     sd->vy_ga.ki = 0.0f;
-    sd->vy_ga.kd = 0.3f;
+    sd->vy_ga.kd = 0.0f;
 
-    sd->w0_ga.kp = 1.5f;
+    sd->w0_ga.kp = 1.0f;
     sd->w0_ga.ki = 0.0f;
-    sd->w0_ga.kd = 0.3f;
+    sd->w0_ga.kd = 0.0f;
 
     return true;
 }
@@ -296,7 +300,7 @@ bool pid_control_update(system_data* sd)
     static float vx_err_sum_last, vy_err_sum_last, w0_err_sum_last;
     static float vx_err_sum, vy_err_sum, w0_err_sum;
 
-    static float vx_err_diff, vy_err_diff, w0_err_diff;
+    static float vx_err_dif, vy_err_dif, w0_err_dif;
 
     static float p_out[3], i_out[3], d_out[3];
 
@@ -326,29 +330,29 @@ bool pid_control_update(system_data* sd)
     vy_err_sum = vy_err * (sd->t_delta / 1000.0f) + vy_err_sum_last;
     w0_err_sum = w0_err * (sd->t_delta / 1000.0f) + w0_err_sum_last;
 
-    vx_err_diff = (vx_err - vx_err_last) / (sd->t_delta / 1000.0f) ;
-    vy_err_diff = (vy_err - vy_err_last) / (sd->t_delta / 1000.0f) ;
-    w0_err_diff = (w0_err - w0_err_last) / (sd->t_delta / 1000.0f) ;
+    vx_err_dif = (vx_err - vx_err_last) / (sd->t_delta / 1000.0f) ;
+    vy_err_dif = (vy_err - vy_err_last) / (sd->t_delta / 1000.0f) ;
+    w0_err_dif = (w0_err - w0_err_last) / (sd->t_delta / 1000.0f) ;
 
     /* PID */
     p_out[0] = sd->vx_ga.kp * vx_err;
     i_out[0] = sd->vx_ga.ki * vx_err_sum;
-    d_out[0] = sd->vx_ga.kd * vx_err_diff;
+    d_out[0] = sd->vx_ga.kd * vx_err_dif;
 
     p_out[1] = sd->vy_ga.kp * vy_err;
     i_out[1] = sd->vy_ga.ki * vy_err_sum;
-    d_out[1] = sd->vy_ga.kd * vy_err_diff;
+    d_out[1] = sd->vy_ga.kd * vy_err_dif;
 
     p_out[2] = sd->w0_ga.kp * w0_err;
     i_out[2] = sd->w0_ga.ki * w0_err_sum;
-    d_out[2] = sd->w0_ga.kd * w0_err_diff;
-
-    MSG(sd->log, "vx, pid = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last);
+    d_out[2] = sd->w0_ga.kd * w0_err_dif;
 
     sd->cv.vx = p_out[0] + i_out[0] + d_out[0];
     sd->cv.vy = p_out[1] + i_out[1] + d_out[1];
     sd->cv.w0 = p_out[2] + i_out[2] + d_out[2];
+
+    MSG(sd->log, "vx, pid = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last, sd->cv.vx);
 
     vx_err_last = vx_err;
     vy_err_last = vy_err;

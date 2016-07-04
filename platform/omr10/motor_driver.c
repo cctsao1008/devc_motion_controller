@@ -18,7 +18,7 @@
 #include "..\..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEBUG false
+#define DEBUG true
 
 /* protocol */
 #define STC1 0xEB // start code 1
@@ -51,7 +51,7 @@ HANDLE open_port(const char* com_port)
 {
     HANDLE hComm = NULL;
 
-    hComm = CreateFile( com_port, 
+    hComm = CreateFile( com_port,
                         GENERIC_READ | GENERIC_WRITE,
                         0, // exclusive access
                         0, // no security
@@ -137,7 +137,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
         MSG(sd->log, "[ERROR] setup_port(SetCommTimeouts), failed! \n");
         return false;
     }
- 
+
     if(!GetCommState(hComm, &dcb))
     {
         MSG(sd->log, "[ERROR] setup_port(GetCommState), failed! \n");
@@ -187,9 +187,9 @@ DWORD uart_tx(HANDLE hComm, uint8_t * data, int length)
 }
 
 bool motor_driver_init(system_data* sd)
-{    
+{
     MSG(sd->log, "%s", "[INFO] motor_driver_init... \n");
-    
+
     if(sd == NULL)
     {
         MSG(sd->log, "[ERROR] motor_driver_init, failed! \n");
@@ -213,7 +213,7 @@ bool motor_driver_init(system_data* sd)
 
     return true;
 }
- 
+
 bool motor_driver_update(system_data* sd)
 {
     uint8_t pwm1 = (uint8_t) sd->mot.out.pwm1;
@@ -226,9 +226,34 @@ bool motor_driver_update(system_data* sd)
     uint8_t fr3 = (uint8_t) sd->mot.fr3;
     uint8_t fr4 = (uint8_t) sd->mot.fr4;
 
-    uint8_t wb[128] = {STC1, STC2, 0xA3, 0x08,
-                        fr1,  fr2,  fr3,  fr4,
+    char forward_test[] = {0xEB, 0x90, 0xA1, 0x01, 0x04, 0x20}; // forward
+    char wheel_ctrl[] = {0xEB, 0x90, 0xA1, 0x01, 0x0F, 0x2B};
+
+    #if 1
+    uint8_t wb[128] = {0xEB, 0x90, 0xA3, 0x08,
+                        fr1,  !fr2,  !fr3,  fr4,
                         pwm1, pwm2, pwm3, pwm4};
+    #else
+    uint8_t wb[128] = {0xEB, 0x90, 0xA3, 0x08,
+                        1,  0,  0,  1,
+                        65, 65, 65, 65};
+/* PWM > RPM
+100 ,283
+95 , ? 263
+90 ,256
+85 , ? 219
+80 ,196
+75 , ? 175
+70 ,145
+65 , ? 131
+60 ,101
+55 ,80
+50 ,61
+45 ,42
+40 ,26
+35 ,12
+*/
+    #endif
 
     uint8_t rb[128] = {0}, rc = 0, i;
 
@@ -238,15 +263,27 @@ bool motor_driver_update(system_data* sd)
         return false;
     }
 
+    MSG(sd->log, "[INFO] motor_driver_update! \n");
+    MSG(sd->log, "fr1, fr2, fr3, fr4 (1 forward, 0 reverse) = \n");
+    MSG(sd->log, "%9d %9d %9d %9d \n\n", fr1, fr2, fr3, fr4);
+    MSG(sd->log, "pwm1, pwm2, pwm3, pwm4 (MAX : 100) = \n");
+    MSG(sd->log, "%9d %9d %9d %9d \n\n", pwm1, pwm2, pwm3, pwm4);
+
+    //uart_tx(sd->hComm, forward_test, 6);
+    uart_tx(sd->hComm, wheel_ctrl, 6);
+
     wb[127] = bcc(wb, 12);
     uart_tx(sd->hComm, wb, 12);
     uart_tx(sd->hComm, &wb[127], 1);
 
+    //usleep(50000);
+
     #if DEBUG
-    rc = uart_rx(sd->hComm, rb,13);
+    //rc = uart_rx(sd->hComm, rb, 2);
 
     if(rc > 0)
     {
+        MSG(sd->log, "[INFO] motor_driver_update, uart_rx! \n");
         for(i = 0 ; i < rc ; i++)
             printf("0x%X \n", rb[i]);
     }
