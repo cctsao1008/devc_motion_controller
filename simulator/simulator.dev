@@ -1,10 +1,10 @@
 [Project]
-FileName=main_control.dev
-Name=main_control
+FileName=simulator.dev
+Name=simulator
 Type=1
 Ver=2
 ObjFiles=
-Includes=../application;../module/FreeRTOS/Source/include;../module/FreeRTOS/Source/portable/MSVC-MingW
+Includes=../simulator;../module/FreeRTOS/Source/include;../module/FreeRTOS/Source/portable/MSVC-MingW
 Libs=
 PrivateResource=
 ResourceIncludes=
@@ -19,7 +19,7 @@ ObjectOutput=
 LogOutput=
 LogOutputEnabled=0
 OverrideOutput=0
-OverrideOutputName=main_control.exe
+OverrideOutputName=simulator.exe
 HostApplication=
 UseCustomMakefile=0
 CustomMakefile=
@@ -121,16 +121,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit4]
-FileName=main_control.c
-CompileCpp=0
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit5]
 FileName=..\platform\omr10\motor_driver.c
 CompileCpp=0
 Folder=
@@ -140,8 +130,18 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit6]
+[Unit5]
 FileName=..\common\commander.c
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit6]
+FileName=simulator.c
 CompileCpp=0
 Folder=
 Compile=1
