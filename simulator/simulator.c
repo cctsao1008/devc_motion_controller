@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
 
-    sprintf(file_name, "log/%d%02d%02d%02d%02d%02d.txt", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    sprintf(file_name, "log/%d%02d%02d%02d%02d%02d.csv", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     printf("[INFO] log to ... %s\n", file_name);
 
     pLog = fopen(file_name,"w" );
@@ -77,36 +77,23 @@ int main(int argc, char *argv[])
     };
 
     sd->mot.mode = 0;
-    //sd->sv.vx = 0.6f;
-    //sd->sv.vy = 0.6f;
-    //sd->sv.w0 = 0.6f;
 
     commander_init(sd);
     motion_control_init(sd);
     motor_control_init(sd);
 
-    #if 0
-    motion_control_update(sd);
-    motor_control_update(sd);
 
-    motion_control_update(sd);
-    motor_control_update(sd);
-    #endif
 
     while(1)
     {
         perf_begin();
         motion_control_update(sd);
         motor_control_update(sd);
-        //MSG(sd->log, "%s \n", sd->log);
         memset(sd->log, 0, sizeof(sd->log));
-        //usleep(200000);
-        //mdelay(200);
         perf_end();
 
         double d = (double)(end - start) / CLOCKS_PER_SEC;
         //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 1.0f * 100));
-
         //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         //nanosleep(&hrt, NULL);
 
@@ -115,7 +102,6 @@ int main(int argc, char *argv[])
         mdelay(1000);
     }
 
-    //system("pause");
     return 0;
 }
 

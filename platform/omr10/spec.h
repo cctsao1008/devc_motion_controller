@@ -26,7 +26,7 @@
 #define DEFAULT_MIN_PWM                 10.0f
 #define DEFAULT_MAN_RPM                 283.0f
 #define DEFAULT_MIN_RPM                 12.0f
-#define DEFAULT_MOTOR_POWER             30.0f               // Watt (W)
+#define DEFAULT_MOTOR_POWER             30.0f                 // Watt (W)
 
 /*
     Statistics Calculator: Linear Regression
@@ -45,13 +45,12 @@
      42,  45
      26,  40
      12,  35
-
      -------
 
    Regression line equation: y = 35.2831183017210 + 0.22642996421197x
  */
 #define DEFAULT_RPM2PWM_A               35.2831183017210f // Intercept (a)
-#define DEFAULT_RPM2PWM_B               0.22642996421197f     // Slope (b)
+#define DEFAULT_RPM2PWM_B               0.22642996421197f // Slope (b)
 
 /* Guide Sensor */
 #define DEFAULT_GUIDE_SENSOR_OFFSET     (450.0f/2)
