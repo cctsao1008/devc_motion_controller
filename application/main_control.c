@@ -85,10 +85,11 @@ int main(int argc, char *argv[]) {
         perf_end();
 
         double d = (double)(end - start) / CLOCKS_PER_SEC;
-        MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 1.0f * 100));
+        //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 1.0f * 100));
 
-        hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
-        nanosleep(&hrt, NULL);
+        //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
+        //nanosleep(&hrt, NULL);
+        mdelay(100);
     }
 
     //system("pause");

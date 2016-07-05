@@ -351,8 +351,8 @@ bool pid_control_update(system_data* sd)
     sd->cv.vy = p_out[1] + i_out[1] + d_out[1];
     sd->cv.w0 = p_out[2] + i_out[2] + d_out[2];
 
-    MSG(sd->log, "vx, pid = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last, sd->cv.vx);
+    //MSG(sd->log, "vx, pid = \n");
+    //MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last, sd->cv.vx);
 
     vx_err_last = vx_err;
     vy_err_last = vy_err;

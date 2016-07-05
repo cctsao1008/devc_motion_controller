@@ -6,6 +6,7 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -31,6 +32,7 @@
 #define KEY_DOT '.'
 
 bool keypad_input_check(system_data* sd);
+bool auto_speed_test(system_data* sd);
 
 float vx_limiter(float vx)
 {
@@ -49,15 +51,16 @@ float w0_limiter(float w0)
 
 bool commander_init(system_data* sd)
 {
-    pthread_t tid;
-    pthread_create(&tid, NULL, (void *)&keypad_input_check, (void *)sd);
+    pthread_t tid[4];
+    pthread_create(&tid[0], NULL, (void *)&keypad_input_check, (void *)sd);
+    //pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
 
     return true;
 }
 
 bool keypad_input_check(system_data* sd)
 {
-    float vx, vy, w0;
+    float vx, vy, w0, d = 0.02f;
     int c;
 
     while(1)
@@ -80,29 +83,45 @@ bool keypad_input_check(system_data* sd)
         if (c == KEY_1)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_1 : \n");
-            sd->sv.vx = vx_limiter(vx - 0.1f);
-            sd->sv.vy = vy_limiter(vy - 0.1f);
+            if((vx -= d) < DEFAULT_MAX_VX * (-1.0f))
+                vx = DEFAULT_MAX_VX * (-1.0f);
+
+            if((vy -= d) < DEFAULT_MAX_VY * (-1.0f))
+                vy = DEFAULT_MAX_VY * (-1.0f);
+
+            sd->sv.vx = vx;
+            sd->sv.vy = vy;
+
+            printf("vx = %f \n", vx);
+            printf("vy = %f \n", vy);
         }
 
         if (c == KEY_2)
         {
-            MSG(sd->log, "[DEBUG] keypad_input_check, KEY_2 : \n");
-            sd->sv.vx = vx_limiter(vx - 0.1f);
+            //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_2 : \n");
+            if((vx -= d) < DEFAULT_MAX_VX * (-1.0f))
+                vx = DEFAULT_MAX_VX * (-1.0f);
 
-            printf("vx = %f \n", sd->sv.vx);
+            sd->sv.vx = vx;
+
+            printf("vx = %f \n", vx);
         }
 
         if (c == KEY_3)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_3 : \n");
-            sd->sv.vx = vx_limiter(vx + 0.1f);
-            sd->sv.vy = vy_limiter(vy - 0.1f);
+
         }
 
         if (c == KEY_4)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_4 : \n");
-            sd->sv.vy = vy_limiter(vy + 0.1f);
+            if((vy -= d) < DEFAULT_MAX_VY * (-1.0f))
+                vy = DEFAULT_MAX_VY * (-1.0f);
+
+            sd->sv.vy = vy;
+
+            printf("vy = %f \n", vy);
         }
 
         if (c == KEY_5)
@@ -115,34 +134,98 @@ bool keypad_input_check(system_data* sd)
         if (c == KEY_6)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_6 : \n");
-            sd->sv.vy = vy_limiter(vy - 0.1f);
+            if((vy += d) > DEFAULT_MAX_VY * (1.0f))
+                vy = DEFAULT_MAX_VY * (1.0f);
+
+            sd->sv.vy = vy;
+
+            printf("vy = %f \n", vy);
         }
 
         if (c == KEY_7)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_7 : \n");
-            sd->sv.vx = vx_limiter(vx - 0.1f);
-            sd->sv.vy = vy_limiter(vy + 0.1f);
+
         }
 
         if (c == KEY_8)
         {
-            MSG(sd->log, "[DEBUG] keypad_input_check, KEY_8 : \n");
-            sd->sv.vx = vx_limiter(vx + 0.1f);
+            //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_8 : \n");
+            if((vx += d) > DEFAULT_MAX_VX * (1.0f))
+                vx = DEFAULT_MAX_VX * (1.0f);
 
-            printf("vx = %f \n", sd->sv.vx);
+            sd->sv.vx = vx;
+
+            printf("vx = %f \n", vx);
         }
 
         if (c == KEY_9)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_9 : \n");
-            sd->sv.vx = vx_limiter(vx + 0.1f);
-            sd->sv.vy = vy_limiter(vy + 0.1f);
+            if((vx += d) > DEFAULT_MAX_VX)
+                vx = DEFAULT_MAX_VX;
+
+            if((vy += d) > DEFAULT_MAX_VY)
+                vy = DEFAULT_MAX_VY;
+
+            sd->sv.vx = vx;
+            sd->sv.vy = vy;
+
+            printf("vx = %f \n", vx);
+            printf("vy = %f \n", vy);
         }
 
         usleep(50000);
     }
 
     return true;
+}
+
+bool auto_speed_test(system_data* sd)
+{
+    static bool up = 1;
+    static uint8_t count = 0;
+
+    float vx, vy, w0, d = 0.02f;
+
+    vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
+
+    while(1)
+    {
+        MSG(sd->log, "[INFO] auto_speed_test... \n");
+
+        if(up)
+        {
+            if((vx += d) > DEFAULT_MAX_VX)
+                vx = DEFAULT_MAX_VX;
+
+            printf("up %2d, vx = %9.4f \n", count, vx);
+        }
+        else
+        {
+            if((vx -= d) < DEFAULT_MAX_VX * (-1.0f))
+                vx = DEFAULT_MAX_VX * (-1.0f);
+
+            printf("dn %2d, vx = %9.4f \n", count, vx);
+        }
+
+        sd->sv.vx = vx;
+
+
+        count++;
+
+        if(count > 40)
+        {
+            count = 0;
+            Sleep(1000);
+
+            up = !up;
+        }
+
+        Sleep(1500);
+
+        if(sd->sv.vx == 0.0f)
+            Sleep(1000);
+    }
 }
 

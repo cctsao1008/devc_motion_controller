@@ -30,8 +30,6 @@ typedef struct _mot_data
                   // 1 : controlled by manual, RPM
                   // 2 : controlled by manual, PWM
 
-    bool fr1, fr2, fr3, fr4;
-
     struct
     {
         bool  fr1, fr2, fr3, fr4;
@@ -42,6 +40,7 @@ typedef struct _mot_data
 
     struct
     {
+        bool fr1, fr2, fr3, fr4;
         float w1, w2, w3, w4;
         float rpm1, rpm2, rpm3, rpm4;
         float pwm1, pwm2, pwm3, pwm4;

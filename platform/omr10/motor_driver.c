@@ -14,11 +14,12 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+//#include <termios.h> /* POSIX terminal control definitions */
 
 #include "..\..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEBUG true
+#define DEBUG false
 
 /* protocol */
 #define STC1 0xEB // start code 1
@@ -28,6 +29,30 @@ static bool initialized = false;
 
 /* Add "\\\\.\\" for COM > 10 */
 static char* com_port = (char*)"\\\\.\\COM6";
+
+uint8_t pwm_limiter(uint8_t pwm)
+{
+    if(pwm < DEFAULT_MIN_PWM)
+        return DEFAULT_MIN_PWM;
+    else if(pwm > DEFAULT_MAX_PWM)
+        return DEFAULT_MAX_PWM;
+
+    return pwm;
+}
+
+uint8_t RPM2PWM(float rpm)
+{
+    float pwm = 0;
+
+    if(rpm < DEFAULT_MIN_RPM)
+        pwm = DEFAULT_MIN_PWM;
+    else
+        pwm = (DEFAULT_RPM2PWM_B * rpm) + DEFAULT_RPM2PWM_A;
+
+    //printf("rpm, pwm = %f,%f \n", rpm, pwm);
+
+    return pwm_limiter((uint8_t)pwm);
+}
 
 uint8_t bcc(char *data, uint16_t len)
 {
@@ -41,7 +66,7 @@ uint8_t bcc(char *data, uint16_t len)
     bcc = bcc & 0xFF;
 
     #if DEBUG
-    MSG(sd->log, "[DEBUG] CRC-32 = 0x%X \n", bcc);
+    //MSG(sd->log, "[DEBUG] CRC-32 = 0x%X \n", bcc);
     #endif
 
     return bcc;
@@ -216,43 +241,33 @@ bool motor_driver_init(system_data* sd)
 
 bool motor_driver_update(system_data* sd)
 {
-    uint8_t pwm1 = (uint8_t) sd->mot.out.pwm1;
-    uint8_t pwm2 = (uint8_t) sd->mot.out.pwm2;
-    uint8_t pwm3 = (uint8_t) sd->mot.out.pwm3;
-    uint8_t pwm4 = (uint8_t) sd->mot.out.pwm4;
+    static bool fr1_last, fr2_last, fr3_last, fr4_last;
+    static uint8_t pwm1, pwm2, pwm3, pwm4;
 
-    uint8_t fr1 = (uint8_t) sd->mot.fr1;
-    uint8_t fr2 = (uint8_t) sd->mot.fr2;
-    uint8_t fr3 = (uint8_t) sd->mot.fr3;
-    uint8_t fr4 = (uint8_t) sd->mot.fr4;
+    bool fr1, fr2, fr3, fr4;
 
-    char forward_test[] = {0xEB, 0x90, 0xA1, 0x01, 0x04, 0x20}; // forward
-    char wheel_ctrl[] = {0xEB, 0x90, 0xA1, 0x01, 0x0F, 0x2B};
+    char dir_forward[] = {0xEB, 0x90, 0xA1, 0x01, 0x04, 0x20}; // forward
+    char motor_ctrl[] = {0xEB, 0x90, 0xA1, 0x01, 0x0F, 0x2B};
+    char motor_stop[] = {0xEB, 0x90, 0xA1, 0x01, 0x00, 0x24};
+
+    fr1 = !sd->mot.out.fr1;
+    fr2 =  sd->mot.out.fr2;
+    fr3 = !sd->mot.out.fr3;
+    fr4 =  sd->mot.out.fr4;
+
+    pwm1 = RPM2PWM(sd->mot.out.rpm1);
+    pwm2 = RPM2PWM(sd->mot.out.rpm2);
+    pwm3 = RPM2PWM(sd->mot.out.rpm3);
+    pwm4 = RPM2PWM(sd->mot.out.rpm4);
 
     #if 1
     uint8_t wb[128] = {0xEB, 0x90, 0xA3, 0x08,
-                        fr1,  !fr2,  !fr3,  fr4,
-                        pwm1, pwm2, pwm3, pwm4};
-    #else
+                        fr2,  fr1,  fr3,  fr4,
+                        pwm2, pwm1, pwm3, pwm4};
+    #else /* For regression analysis*/
     uint8_t wb[128] = {0xEB, 0x90, 0xA3, 0x08,
                         1,  0,  0,  1,
                         65, 65, 65, 65};
-/* PWM > RPM
-100 ,283
-95 , ? 263
-90 ,256
-85 , ? 219
-80 ,196
-75 , ? 175
-70 ,145
-65 , ? 131
-60 ,101
-55 ,80
-50 ,61
-45 ,42
-40 ,26
-35 ,12
-*/
     #endif
 
     uint8_t rb[128] = {0}, rc = 0, i;
@@ -263,20 +278,35 @@ bool motor_driver_update(system_data* sd)
         return false;
     }
 
+    #if DEBUG
     MSG(sd->log, "[INFO] motor_driver_update! \n");
     MSG(sd->log, "fr1, fr2, fr3, fr4 (1 forward, 0 reverse) = \n");
     MSG(sd->log, "%9d %9d %9d %9d \n\n", fr1, fr2, fr3, fr4);
     MSG(sd->log, "pwm1, pwm2, pwm3, pwm4 (MAX : 100) = \n");
     MSG(sd->log, "%9d %9d %9d %9d \n\n", pwm1, pwm2, pwm3, pwm4);
+    #endif
 
-    //uart_tx(sd->hComm, forward_test, 6);
-    uart_tx(sd->hComm, wheel_ctrl, 6);
+    {
+        if((fr1 != fr1_last) || (fr2 != fr2_last) || (fr3 != fr3_last) || (fr4 != fr4_last))
+        {
+            MSG(sd->log, "[INFO] motor_driver_update, fr changes \n");
+            uart_tx(sd->hComm, motor_stop, 6);
+            Sleep(600);
+        }
 
-    wb[127] = bcc(wb, 12);
-    uart_tx(sd->hComm, wb, 12);
-    uart_tx(sd->hComm, &wb[127], 1);
+        fr1_last = fr1;
+        fr2_last = fr2;
+        fr3_last = fr3;
+        fr4_last = fr4;
 
-    //usleep(50000);
+        //uart_tx(sd->hComm, forward_test, 6);
+        uart_tx(sd->hComm, motor_ctrl, 6);
+
+        wb[127] = bcc(wb, 12);
+        uart_tx(sd->hComm, wb, 12);
+        uart_tx(sd->hComm, &wb[127], 1);
+    }
+
 
     #if DEBUG
     //rc = uart_rx(sd->hComm, rb, 2);
