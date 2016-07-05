@@ -53,7 +53,7 @@ bool commander_init(system_data* sd)
 {
     pthread_t tid[4];
     pthread_create(&tid[0], NULL, (void *)&keypad_input_check, (void *)sd);
-    //pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
+    pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
 
     return true;
 }
@@ -184,7 +184,7 @@ bool keypad_input_check(system_data* sd)
 bool auto_speed_test(system_data* sd)
 {
     static bool up = 1;
-    static uint8_t count = 0;
+    static uint8_t count = 30;
 
     float vx, vy, w0, d = 0.02f;
 
@@ -214,7 +214,7 @@ bool auto_speed_test(system_data* sd)
 
         count++;
 
-        if(count > 40)
+        if(count > 70)
         {
             count = 0;
             Sleep(1000);
