@@ -29,7 +29,27 @@ void mdelay(unsigned int mseconds)
     while (ticks > clock());
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+    FILE *pLog;
+    char log[128];
+
+    /* use date & time as log file name. */
+    char file_name[128];
+    time_t t = time(NULL);
+    struct tm tm= *localtime(&t);
+
+    sprintf(file_name, "log/%d%02d%02d%02d%02d%02d.txt", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    printf("[INFO] log to ... %s\n", file_name);
+
+    pLog = fopen(file_name,"w" );
+
+    if(NULL == pLog)
+    {
+        printf("[ERROR] fopen failure!");
+        exit(0);
+    }
+
     /* setting value, control value, process value */
     system_data* sd;
 
@@ -89,6 +109,9 @@ int main(int argc, char *argv[]) {
 
         //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         //nanosleep(&hrt, NULL);
+
+        sprintf(log, "%9.4f, %9.4f, %9.4f \n", sd->sv.vx, sd->cv.vx, sd->pv.vx);
+        fprintf(pLog, log);
         mdelay(1000);
     }
 
