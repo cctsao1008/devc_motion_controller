@@ -19,6 +19,12 @@
 
 #define DEBUG false
 
+#define MAF_MAX 5
+float moving_average_filter_1(float data);
+float moving_average_filter_2(float data);
+float moving_average_filter_3(float data);
+float moving_average_filter_4(float data);
+
 static bool initialized = false;
 
 float AGR2RPM(float w)
@@ -75,17 +81,14 @@ bool motor_control_update(system_data* sd)
         return false;
     }
 
-    w1 = sd->mot.out.w1;
-    w2 = sd->mot.out.w2;
-    w3 = sd->mot.out.w3;
-    w4 = sd->mot.out.w4;
-
-    #if 0
+    #if 1
     /* fake data */
-    sd->mot.in.w1 = w1;
-    sd->mot.in.w2 = w2;
-    sd->mot.in.w3 = w3;
-    sd->mot.in.w4 = w4;
+    sd->mot.in.w1 = moving_average_filter_1(w1);
+    sd->mot.in.w2 = moving_average_filter_2(w2);
+    sd->mot.in.w3 = moving_average_filter_3(w3);
+    sd->mot.in.w4 = moving_average_filter_4(w4);
+    MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.in.w1, sd->mot.in.w2,
+                                                 sd->mot.in.w3, sd->mot.in.w4);
     #else
     sd->mot.in.w1 = 0.0f;
     sd->mot.in.w2 = 0.0f;
@@ -133,5 +136,97 @@ bool motor_control_update(system_data* sd)
     motor_driver_update(sd);
 
     return true;
+}
+
+
+
+float moving_average_filter_1(float data)
+{
+    static float buf[MAF_MAX];
+    static uint8_t cursor;
+    float sum = 0;
+    uint8_t i = 0;
+
+    //printf("cursor = %d, data = %f \n", cursor, data);
+
+    buf[cursor++] = data;
+
+    //printf("buf[cursor - 1] = %f \n", buf[cursor - 1]);
+
+    if(cursor == MAF_MAX)
+        cursor = 0;
+
+
+    for(i = 0;  i < MAF_MAX ; i++)
+        sum += buf[i];
+
+    //printf("sum = %f \n", sum);
+
+    sum = sum/(MAF_MAX);
+
+    return sum;
+}
+
+float moving_average_filter_2(float data)
+{
+    static float buf[MAF_MAX];
+    static uint8_t cursor;
+    float sum = 0;
+    uint8_t i = 0;
+
+    buf[cursor++] = data;
+
+    if(cursor == MAF_MAX)
+        cursor = 0;
+
+
+    for(i = 0;  i < MAF_MAX ; i++)
+        sum += buf[i];
+
+    sum = sum/(MAF_MAX);
+
+    return sum;
+}
+
+float moving_average_filter_3(float data)
+{
+    static float buf[MAF_MAX];
+    static uint8_t cursor;
+    float sum = 0;
+    uint8_t i = 0;
+
+    buf[cursor++] = data;
+
+    if(cursor == MAF_MAX)
+        cursor = 0;
+
+
+    for(i = 0;  i < MAF_MAX ; i++)
+        sum += buf[i];
+
+    sum = sum/(MAF_MAX);
+
+    return sum;
+}
+
+float moving_average_filter_4(float data)
+{
+    static float buf[MAF_MAX];
+    static uint8_t cursor;
+    float sum = 0;
+    uint8_t i = 0;
+
+    buf[cursor++] = data;
+
+    if(cursor == MAF_MAX)
+        cursor = 0;
+
+
+    for(i = 0;  i < MAF_MAX ; i++)
+        sum += buf[i];
+
+    sum = sum/(MAF_MAX);
+
+    return sum;
 }
 

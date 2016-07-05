@@ -272,7 +272,7 @@ bool motor_driver_update(system_data* sd)
 
     uint8_t rb[128] = {0}, rc = 0, i;
 
-    if((sd == NULL) || (initialized != true))
+    if(sd == NULL)
     {
         MSG(sd->log, "[ERROR] motor_driver_update, failed! \n");
         return false;

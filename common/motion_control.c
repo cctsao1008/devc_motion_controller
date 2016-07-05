@@ -19,7 +19,7 @@
 
 #include "small-matrix-inverse\invert4x4_c.h"
 
-#define DEBUG false
+#define DEBUG true
 
 static bool initialized = false;
 static float R = DEFAULT_R;
@@ -32,8 +32,9 @@ bool inverse_kinematics(system_data* sd);
 /* pid control */
 bool pid_control_init(system_data* sd);
 bool pid_control_update(system_data* sd);
+bool soft_brake(system_data* sd);
 
-/* motion control */
+
 bool motion_control_init(system_data* sd)
 {
     MSG(sd->log, "%s", "[INFO] motion_control_init... \n");
@@ -277,15 +278,15 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
-    sd->vx_ga.kp = 1.0f;
+    sd->vx_ga.kp = 0.2f;
     sd->vx_ga.ki = 0.0f;
     sd->vx_ga.kd = 0.1f;
 
-    sd->vy_ga.kp = 1.0f;
+    sd->vy_ga.kp = 0.2f;
     sd->vy_ga.ki = 0.0f;
     sd->vy_ga.kd = 0.0f;
 
-    sd->w0_ga.kp = 1.0f;
+    sd->w0_ga.kp = 0.2f;
     sd->w0_ga.ki = 0.0f;
     sd->w0_ga.kd = 0.0f;
 
@@ -347,12 +348,14 @@ bool pid_control_update(system_data* sd)
     i_out[2] = sd->w0_ga.ki * w0_err_sum;
     d_out[2] = sd->w0_ga.kd * w0_err_dif;
 
-    sd->cv.vx = p_out[0] + i_out[0] + d_out[0];
-    sd->cv.vy = p_out[1] + i_out[1] + d_out[1];
-    sd->cv.w0 = p_out[2] + i_out[2] + d_out[2];
+    sd->cv.vx += p_out[0] + i_out[0] + d_out[0];
+    sd->cv.vy += p_out[1] + i_out[1] + d_out[1];
+    sd->cv.w0 += p_out[2] + i_out[2] + d_out[2];
 
-    //MSG(sd->log, "vx, pid = \n");
-    //MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last, sd->cv.vx);
+    soft_brake(sd);
+
+    MSG(sd->log, "vx, pid = \n");
+    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_last, sd->cv.vx);
 
     vx_err_last = vx_err;
     vy_err_last = vy_err;
@@ -363,5 +366,38 @@ bool pid_control_update(system_data* sd)
     w0_err_sum_last = w0_err_sum;
 
     return true;
+}
+
+bool soft_brake(system_data* sd)
+{
+    /* check vx */
+    if((sd->sv.vx > 0.0f) && (sd->cv.vx < 0.0f))
+    {
+        MSG(sd->log, "[INFO] soft_brake, vx, +sv, -cv! \n");
+    }
+    else if((sd->sv.vx < 0.0f) && (sd->cv.vx > 0.0f))
+    {
+        MSG(sd->log, "[INFO] soft_brake, vx, +sv, -cv! \n");
+    }
+
+    /* check vy */
+    if((sd->sv.vy > 0.0f) && (sd->cv.vy < 0.0f))
+    {
+        MSG(sd->log, "[INFO] soft_brake, vy, +sv, -cv! \n");
+    }
+    else if((sd->sv.vy < 0.0f) && (sd->cv.vy > 0.0f))
+    {
+        MSG(sd->log, "[INFO] soft_brake, vy, +sv, -cv! \n");
+    }
+
+    /* check w0 */
+    if((sd->sv.w0 > 0.0f) && (sd->cv.w0 < 0.0f))
+    {
+        MSG(sd->log, "[INFO] soft_brake, w0, +sv, -cv! \n");
+    }
+    else if((sd->sv.w0 < 0.0f) && (sd->cv.w0 > 0.0f))
+    {
+        MSG(sd->log, "[INFO] soft_brake, w0, +sv, -cv! \n");
+    }
 }
 
