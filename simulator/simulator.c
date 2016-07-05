@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 
         //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         //nanosleep(&hrt, NULL);
-        mdelay(2000);
+        mdelay(1000);
     }
 
     //system("pause");

@@ -19,7 +19,7 @@
 
 #define DEBUG false
 
-#define MAF_MAX 5
+#define MAF_MAX 6
 float moving_average_filter_1(float data);
 float moving_average_filter_2(float data);
 float moving_average_filter_3(float data);
@@ -81,20 +81,19 @@ bool motor_control_update(system_data* sd)
         return false;
     }
 
-    #if 1
     /* fake data */
     sd->mot.in.w1 = moving_average_filter_1(w1);
     sd->mot.in.w2 = moving_average_filter_2(w2);
     sd->mot.in.w3 = moving_average_filter_3(w3);
     sd->mot.in.w4 = moving_average_filter_4(w4);
+
+    #if DEBUG
+    MSG(sd->log, "[DEBUG] motor_control_update, moving average filter \n");
+    MSG(sd->log, "w1, w2, w3, w4 (rad/s) = \n");
     MSG(sd->log, "%9.4f %9.4f %9.4f %9.4f \n\n", sd->mot.in.w1, sd->mot.in.w2,
                                                  sd->mot.in.w3, sd->mot.in.w4);
-    #else
-    sd->mot.in.w1 = 0.0f;
-    sd->mot.in.w2 = 0.0f;
-    sd->mot.in.w3 = 0.0f;
-    sd->mot.in.w4 = 0.0f;
     #endif
+
 
     w1 = limiter(w1);
     w2 = limiter(w2);
