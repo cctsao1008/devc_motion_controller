@@ -18,19 +18,21 @@
 #include "..\common\system.h"
 #include "..\platform\platform.h"
 
+#define LOOP_TIME 120
+
 #define perf_begin()  clock_t start = clock()
 #define perf_end()    clock_t end = clock()
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
-void mdelay(unsigned int mseconds)
+void mdelay(unsigned int ticks)
 {
-    clock_t ticks = mseconds + clock();
     while (ticks > clock());
 }
 
 int main(int argc, char *argv[])
 {
+    clock_t ticks;
     FILE *pLog;
     char log[128] = {"log/"};
 
@@ -107,14 +109,27 @@ int main(int argc, char *argv[])
         memset(sd->log, 0, sizeof(sd->log));
         perf_end();
 
-        double d = (double)(end - start) / CLOCKS_PER_SEC;
+        //double d = (double)(end - start) / CLOCKS_PER_SEC;
         //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 1.0f * 100));
         //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         //nanosleep(&hrt, NULL);
 
-        sprintf(log, "%ld, %9.4f, %9.4f, %9.4f \n", sd->t_curr, sd->sv.vx, sd->cv.vx, sd->pv.vx);
-        fprintf(pLog, log);
-        mdelay(120);
+        ticks = clock();
+
+        fprintf(pLog, "%ld, ", sd->t_curr);
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.vx, sd->cv.vx, sd->pv.vx);
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.vy, sd->cv.vy, sd->pv.vy);
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.w0, sd->cv.w0, sd->pv.w0);
+        fprintf(pLog, "\n");
+
+        //mdelay(ticks + 10);
+
+        if((clock() - ticks) > LOOP_TIME)
+            printf("[ERROR] log write time > LOOP_TIME !! \n");
+        else
+            printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
+
+        mdelay(ticks + LOOP_TIME);
     }
 
     return 0;

@@ -73,11 +73,23 @@ bool keypad_input_check(system_data* sd)
         if (c == KEY_DOT)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_DOT : \n");
+            if((w0 -= d) < DEFAULT_MAX_W0 * (-1.0f))
+                w0 = DEFAULT_MAX_W0 * (-1.0f);
+
+            sd->sv.w0 = w0;
+
+            printf("w0 = %f \n", w0);
         }
 
         if (c == KEY_0)
         {
             //MSG(sd->log, "[DEBUG] keypad_input_check, KEY_0 : \n");
+            if((w0 += d) > DEFAULT_MAX_VY * (1.0f))
+                w0 = DEFAULT_MAX_VY * (1.0f);
+
+            sd->sv.w0 = w0;
+
+            printf("vy = %f \n", w0);
         }
 
         if (c == KEY_1)

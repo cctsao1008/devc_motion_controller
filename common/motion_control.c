@@ -92,10 +92,10 @@ bool kinematics_init(system_data* sd)
 {
     uint16_t i = 0, row = 0, col = 0;
 
-    float mat_inverse[4][4] = {{1.0f,  1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0},
-                               {1.0f, -1.0f,  (DEFAULT_L1 + DEFAULT_L2), 0},
-                               {1.0f, -1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0},
-                               {1.0f,  1.0f,  (DEFAULT_L1 + DEFAULT_L2), 1},};
+    float mat_inverse[4][4] = {{1.0f,  1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0.0f},
+                               {1.0f, -1.0f,  (DEFAULT_L1 + DEFAULT_L2), 0.0f},
+                               {1.0f, -1.0f, -(DEFAULT_L1 + DEFAULT_L2), 0.0f},
+                               {1.0f,  1.0f,  (DEFAULT_L1 + DEFAULT_L2), 1.0f}};
 
     float mat_forward[4][4] = {0};
 
@@ -226,10 +226,10 @@ bool inverse_kinematics(system_data* sd)
 
     memcpy(mat, sd->mat_inverse, sizeof(mat));
 
-    sd->mot.out.w1 = (1 / R) * (vx * mat[0][0] + vy * mat[0][1] + w0 * mat[0][2]);
-    sd->mot.out.w2 = (1 / R) * (vx * mat[1][0] + vy * mat[1][1] + w0 * mat[1][2]);
-    sd->mot.out.w3 = (1 / R) * (vx * mat[2][0] + vy * mat[2][1] + w0 * mat[2][2]);
-    sd->mot.out.w4 = (1 / R) * (vx * mat[3][0] + vy * mat[3][1] + w0 * mat[3][2]);
+    sd->mot.out.w1 = (1.0f / R) * (mat[0][0] * vx + mat[0][1] * vy + mat[0][2] * w0);
+    sd->mot.out.w2 = (1.0f / R) * (mat[1][0] * vx + mat[1][1] * vy + mat[1][2] * w0);
+    sd->mot.out.w3 = (1.0f / R) * (mat[2][0] * vx + mat[2][1] * vy + mat[2][2] * w0);
+    sd->mot.out.w4 = (1.0f / R) * (mat[3][0] * vx + mat[3][1] * vy + mat[3][2] * w0);
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] inverse_kinematics : \n");
@@ -261,9 +261,9 @@ bool forward_kinematics(system_data* sd)
 
     memcpy(mat, sd->mat_forward, sizeof(mat));
 
-    sd->pv.vx = (mat[0][0] * w1 + mat[0][1] * w2 + mat[0][2] * w3 + mat[0][3] * w4) * R;
-    sd->pv.vy = (mat[1][0] * w1 + mat[1][1] * w2 + mat[1][2] * w3 + mat[1][3] * w4) * R;
-    sd->pv.w0 = (mat[2][0] * w1 + mat[2][1] * w2 + mat[2][2] * w3 + mat[2][3] * w4) * R;
+    sd->pv.vx = R * (mat[0][0] * w1 + mat[0][1] * w2 + mat[0][2] * w3 + mat[0][3] * w4);
+    sd->pv.vy = R * (mat[1][0] * w1 + mat[1][1] * w2 + mat[1][2] * w3 + mat[1][3] * w4);
+    sd->pv.w0 = R * (mat[2][0] * w1 + mat[2][1] * w2 + mat[2][2] * w3 + mat[2][3] * w4);
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] forward_kinematics : \n");
