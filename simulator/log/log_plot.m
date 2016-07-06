@@ -8,19 +8,19 @@
 
 clear all;
 clc;
+
 log_name = textread('log.txt', '%s');
 log_name = log_name{1};
 
 log = csvread(log_name);
 log = log';
 
-t = 120/1000; % 120 ms
 n = length(log(1,:));
-t = (0:(n - 1)) * (t);
+t = log(1,:) / 1000;
 
-sv = log(1,:); % vx.sv
-cv = log(2,:); % vx.cv
-pv = log(3,:); % vx.pv
+sv = log(2,:); % vx.sv
+cv = log(3,:); % vx.cv
+pv = log(4,:); % vx.pv
 
 figure
 plot(t, sv, t, cv, t, pv);

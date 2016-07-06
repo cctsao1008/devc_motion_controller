@@ -278,15 +278,15 @@ bool forward_kinematics(system_data* sd)
 
 bool pid_control_init(system_data* sd)
 {
-    sd->vx_ga.kp = 0.2f;
+    sd->vx_ga.kp = 0.1f;
     sd->vx_ga.ki = 0.0f;
     sd->vx_ga.kd = 0.05f;
 
-    sd->vy_ga.kp = 0.2f;
+    sd->vy_ga.kp = 0.1f;
     sd->vy_ga.ki = 0.0f;
     sd->vy_ga.kd = 0.05f;
 
-    sd->w0_ga.kp = 0.2f;
+    sd->w0_ga.kp = 0.1f;
     sd->w0_ga.ki = 0.0f;
     sd->w0_ga.kd = 0.05f;
 

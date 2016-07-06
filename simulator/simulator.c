@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
         //nanosleep(&hrt, NULL);
 
-        sprintf(log, "%9.4f, %9.4f, %9.4f \n", sd->sv.vx, sd->cv.vx, sd->pv.vx);
+        sprintf(log, "%ld, %9.4f, %9.4f, %9.4f \n", sd->t_curr, sd->sv.vx, sd->cv.vx, sd->pv.vx);
         fprintf(pLog, log);
         mdelay(120);
     }
