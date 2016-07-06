@@ -8,7 +8,10 @@
 
 clear all;
 clc;
-log = csvread('log.csv');
+log_name = textread('log.txt', '%s');
+log_name = log_name{1};
+
+log = csvread(log_name);
 log = log';
 
 t = 120/1000; % 120 ms
