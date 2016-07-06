@@ -31,7 +31,7 @@ void mdelay(unsigned int mseconds)
 
 int main(int argc, char *argv[])
 {
-    FILE *pLog;
+    FILE *pLog[2];
     char log[128];
 
     /* use date & time as log file name. */
@@ -39,15 +39,17 @@ int main(int argc, char *argv[])
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
 
-    sprintf(file_name, "log/%d%02d%02d%02d%02d%02d.csv", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    sprintf(file_name, "%d%02d%02d%02d%02d%02d.csv", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     printf("[INFO] log to ... %s\n", file_name);
 
-	//if(!_mkdir("Log"))
-   	pLog = fopen(file_name,"w" );
+    //if(!_mkdir("Log"))
+    pLog[0] = fopen(file_name,"w" );
+    pLog[1] = fopen("log.csv","w" );
+
     //else
     //	printf("[ERROR] mkdir failure!");
 
-    if(NULL == pLog)
+    if((NULL == pLog[0]) || (NULL == pLog[1]))
     {
         printf("[ERROR] fopen failure!");
         exit(0);
@@ -101,7 +103,8 @@ int main(int argc, char *argv[])
         //nanosleep(&hrt, NULL);
 
         sprintf(log, "%9.4f, %9.4f, %9.4f \n", sd->sv.vx, sd->cv.vx, sd->pv.vx);
-        fprintf(pLog, log);
+        fprintf(pLog[0], log);
+        fprintf(pLog[1], log);
         mdelay(120);
     }
 
