@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
         ticks = clock();
 
-        fprintf(pLog, "%ld, ", sd->t_curr);
+        fprintf(pLog, "%10ld, ", sd->t_curr);
         fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.vx, sd->cv.vx, sd->pv.vx);
         fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.vy, sd->cv.vy, sd->pv.vy);
         fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.w0, sd->cv.w0, sd->pv.w0);
