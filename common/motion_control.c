@@ -19,7 +19,7 @@
 
 #include "small-matrix-inverse\invert4x4_c.h"
 
-#define DEBUG true
+#define DEBUG false
 
 static bool initialized = false;
 static float R = DEFAULT_R;

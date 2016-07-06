@@ -32,6 +32,7 @@ void mdelay(unsigned int ticks)
 
 int main(int argc, char *argv[])
 {
+	double loading;
     clock_t ticks;
     FILE *pLog;
     char log[128] = {"log/"};
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
     motion_control_init(sd);
     motor_control_init(sd);
 
-
+	mdelay(clock() + 2000);
 
     while(1)
     {
@@ -107,12 +108,6 @@ int main(int argc, char *argv[])
         motion_control_update(sd);
         motor_control_update(sd);
         memset(sd->log, 0, sizeof(sd->log));
-        perf_end();
-
-        //double d = (double)(end - start) / CLOCKS_PER_SEC;
-        //MSG(sd->log, "%f, %2.2f %% \n", d, (float)(d / 1.0f * 100));
-        //hrt.tv_nsec = 1000000000UL - (d * 1000000000UL);
-        //nanosleep(&hrt, NULL);
 
         ticks = clock();
 
@@ -122,12 +117,34 @@ int main(int argc, char *argv[])
         fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.w0, sd->cv.w0, sd->pv.w0);
         fprintf(pLog, "\n");
 
-        //mdelay(ticks + 10);
+		system("cls");
 
         if((clock() - ticks) > LOOP_TIME)
             printf("[ERROR] log write time > LOOP_TIME !! \n");
-        else
-            printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
+        //else
+        //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
+
+		printf("-------------------------------------------------------- \n");
+		printf(" Motion control system running.. %4.2f %% %ld ms \n", (float)(loading / LOOP_TIME) * 100, ticks);
+		printf("-------------------------------------------------------- \n\n");
+
+		printf(" [INFO] PID : \n");
+		printf(" [INFO] loop time = %9d (ms) \n\n", sd->t_delta);
+		
+        printf(" [INFO] vx : \n");
+        printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.vx, sd->cv.vx, sd->pv.vx);
+
+        printf(" [INFO] vy : \n");
+        printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.vy, sd->cv.vy, sd->pv.vy);
+
+        printf(" [INFO] w0 : \n");
+        printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+		//mdelay(ticks + 100);
+
+		perf_end(); 
+		
+		loading = (double)(end - start);      
 
         mdelay(ticks + LOOP_TIME);
     }
