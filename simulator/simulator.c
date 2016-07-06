@@ -39,12 +39,12 @@ int main(int argc, char *argv[])
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
 
-    sprintf(file_name, "%d%02d%02d%02d%02d%02d.csv", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    sprintf(file_name, "log/%d%02d%02d%02d%02d%02d.csv", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     printf("[INFO] log to ... %s\n", file_name);
 
     //if(!_mkdir("Log"))
     pLog[0] = fopen(file_name,"w" );
-    pLog[1] = fopen("log.csv","w" );
+    pLog[1] = fopen("log/log.csv","w" );
 
     //else
     //	printf("[ERROR] mkdir failure!");

@@ -7,7 +7,7 @@
 % */
 
 clear all;
-clc
+clc;
 log = csvread('log.csv');
 log = log';
 
@@ -20,14 +20,10 @@ cv = log(2,:); % vx.cv
 pv = log(3,:); % vx.pv
 
 figure
-plot(t, sv, t, cv, t, pv)
-grid on; 
+plot(t, sv, t, cv, t, pv);
+grid on;
 
-title('Velocity Response')
+title('Velocity Response');
 legend('vx.sv', 'vx.cv', 'vx.pv');
 xlabel('Time (sec)');
 ylabel('Velocity (m/s)');
-
-
-
-
