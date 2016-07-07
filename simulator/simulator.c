@@ -24,6 +24,7 @@
 #define BILLION 1000000000L
 
 void print_banner(void);
+void print_image(FILE *fp);
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
@@ -34,12 +35,13 @@ void mdelay(unsigned int ticks)
 
 int main(int argc, char *argv[])
 {
-	uint64_t t_diff;
-	float t_elapsed;
-	struct timespec start, end;
+    char log[128] = {0};
+    float t_elapsed;
+    struct timespec start, end;
+
+    uint64_t t_diff;
     clock_t ticks;
-    FILE *pLog;
-    char log[128] = {"log/"};
+    FILE *pLog, *pImg;
 
     /* use date & time as file name. */
     char log_name[64];
@@ -48,6 +50,7 @@ int main(int argc, char *argv[])
     struct tm tm= *localtime(&t);
 
     sprintf(log_name, "%d%02d%02d%02d%02d%02d.csv", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
     pLog = fopen("log/log.txt", "w");
 
     if(pLog == NULL)
@@ -59,6 +62,14 @@ int main(int argc, char *argv[])
     {
         fprintf(pLog, log_name);
         fclose(pLog);
+    }
+
+    pImg = fopen("banner.txt", "r");
+
+    if(pImg == NULL)
+    {
+        printf("[ERROR] fopen failure!");
+        exit(0);
     }
 
     sprintf(log, "log/%s", log_name);
@@ -76,8 +87,8 @@ int main(int argc, char *argv[])
     system_data* sd;
 
     srand((unsigned) time(NULL) + getpid());
-    
-    print_banner();
+
+    print_image(pImg);
 
     #if 0  // REF.
     int t1, t2, ts;
@@ -105,16 +116,16 @@ int main(int argc, char *argv[])
 
     motion_control_init(sd);
     motor_control_init(sd);
- 
+
     commander_init(sd);
-    
+
     mdelay(clock() + 3000);
 
     while(1)
     {
-    	
-    	/* measure monotonic time */
-		clock_gettime(CLOCK_MONOTONIC, &start);	/* mark start time */
+
+        /* measure monotonic time */
+        clock_gettime(CLOCK_MONOTONIC, &start);	/* mark start time */
 
         motion_control_update(sd);
         motor_control_update(sd);
@@ -128,23 +139,23 @@ int main(int argc, char *argv[])
         fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.w0, sd->cv.w0, sd->pv.w0);
         fprintf(pLog, "\n");
 
-		system("cls");
+        system("cls");
 
         if((clock() - ticks) > (sd->loop_time))
             printf("[ERROR] log write time > LOOP_TIME !! \n");
         //else
         //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
 
-		t_elapsed += sd->t_delta;
+        t_elapsed += sd->t_delta;
 
-		print_banner();
-		
-		printf(" Motion Simulator running.. \n");
-		printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
+        print_image(pImg);
 
-		printf(" [INFO] PID : \n");
-		printf(" [INFO] loop time = %9d (ms) \n\n", sd->t_delta);
-		
+        printf(" Motion Simulator running.. \n");
+        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
+
+        printf(" [INFO] PID : \n");
+        printf(" [INFO] loop time = %9d (ms) \n\n", sd->t_delta);
+
         printf(" [INFO] vx : \n");
         printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.vx, sd->cv.vx, sd->pv.vx);
 
@@ -154,12 +165,12 @@ int main(int argc, char *argv[])
         printf(" [INFO] w0 : \n");
         printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.w0, sd->cv.w0, sd->pv.w0);
 
-		//mdelay(ticks + 50);
+        //mdelay(ticks + 50);
 
-		clock_gettime(CLOCK_MONOTONIC, &end);	/* mark the end time */
+        clock_gettime(CLOCK_MONOTONIC, &end);	/* mark the end time */
 
-		t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
-		//printf(" [INFO] elapsed time = %llu nanoseconds\n", (long long unsigned int) t_diff);  
+        t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
+        //printf(" [INFO] elapsed time = %llu nanoseconds\n", (long long unsigned int) t_diff);
 
         mdelay(ticks + (sd->loop_time));
     }
@@ -167,13 +178,17 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void print_banner(void)
+#define MAX_LEN 128
+
+void print_image(FILE *fp)
 {
-	printf("  __  __         _    _                  _____  _____  __  __          \n");
-	printf(" |  \\/  |       | |  (_)                / ____||_   _||  \\/  |       \n");
-	printf(" | \\  / |  ___  | |_  _   ___   _ __   | (___    | |  | \\  / |       \n");
-	printf(" | |\\/| | / _ \\ | __|| | / _ \\ | '_ \\   \\___ \\   | |  | |\\/| |  \n");
-	printf(" | |  | || (_) || |_ | || (_) || | | |  ____) | _| |_ | |  | |         \n");
-	printf(" |_|  |_| \\___/  \\__||_| \\___/ |_| |_| |_____/ |_____||_|  |_|    \n\n");
+    char image[MAX_LEN];
+
+    fseek(fp, 0, SEEK_SET);
+
+    while(fgets(image,sizeof(image),fp) != NULL)
+        printf("%s",image);
+
+    printf("\n");
 }
 
