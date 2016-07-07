@@ -243,6 +243,7 @@ bool motor_driver_update(system_data* sd)
 {
     static bool fr1_last, fr2_last, fr3_last, fr4_last;
     static uint8_t pwm1, pwm2, pwm3, pwm4;
+    static uint16_t brake_n;
 
     bool fr1, fr2, fr3, fr4;
 
@@ -275,6 +276,7 @@ bool motor_driver_update(system_data* sd)
     if(sd == NULL)
     {
         MSG(sd->log, "[ERROR] motor_driver_update, failed! \n");
+
         return false;
     }
 
@@ -289,15 +291,26 @@ bool motor_driver_update(system_data* sd)
     {
         if((fr1 != fr1_last) || (fr2 != fr2_last) || (fr3 != fr3_last) || (fr4 != fr4_last))
         {
-            MSG(sd->log, "[INFO] motor_driver_update, fr changes \n");
-            uart_tx(sd->hComm, motor_stop, 6);
-            Sleep(600);
+            MSG(sd->log, "[INFO] motor_driver_update, fr changes... \n");
+
+            brake_n = 600 / sd->loop_time;
         }
 
         fr1_last = fr1;
         fr2_last = fr2;
         fr3_last = fr3;
         fr4_last = fr4;
+
+        if(brake_n > 0)
+        {
+            MSG(sd->log, "[INFO] motor_driver_update, braking...(%d) \n", brake_n);
+
+            brake_n--;
+
+            uart_tx(sd->hComm, motor_stop, 6);
+
+            return true;
+        }
 
         //uart_tx(sd->hComm, forward_test, 6);
         uart_tx(sd->hComm, motor_ctrl, 6);

@@ -68,6 +68,18 @@ int system_task_create(void *(*task) (void *), void *arg)
     return true;
 }
 
+int msleep(unsigned long milisec)
+{
+    struct timespec req = {0};
+    time_t sec = (int)(milisec / 1000);
+    milisec = milisec - (sec * 1000);
+    req.tv_sec = sec;
+    req.tv_nsec = milisec * 1000000L;
+    while(nanosleep(&req,&req) == (-1))
+         continue;
+    return 1;
+}
+
 void timer1_callback_handler(int signum)
 {
     printf("signum = %d", signum);
@@ -88,22 +100,22 @@ void timer3_callback_handler(int signum)
 /* FreeRTOS */
 void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 {
-    
+
 }
 
 void vApplicationIdleHook( void )
 {
-    
+
 }
 
 void vApplicationMallocFailedHook( void )
 {
-    
+
 }
 
 void vApplicationTickHook( void )
 {
-    
+
 }
 
 void vConfigureTimerForRunTimeStats( void )

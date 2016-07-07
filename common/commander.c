@@ -30,6 +30,9 @@
 #define KEY_8 '8'
 #define KEY_9 '9'
 #define KEY_DOT '.'
+#define KEY_s 's' // step input
+#define KEY_r 'r' // ramp input
+#define KEY_i 'i' // impulse input
 
 bool keypad_input_check(system_data* sd);
 bool auto_speed_test(system_data* sd);
@@ -52,6 +55,7 @@ float w0_limiter(float w0)
 bool commander_init(system_data* sd)
 {
     pthread_t tid[4];
+
     pthread_create(&tid[0], NULL, (void *)&keypad_input_check, (void *)sd);
     //pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
 
@@ -187,7 +191,33 @@ bool keypad_input_check(system_data* sd)
             printf("vy = %f \n", vy);
         }
 
-        usleep(50000);
+        if (c == KEY_s)
+        {
+            sd->sv.vx = DEFAULT_MAX_VX;
+            sd->sv.vy = DEFAULT_MAX_VY;
+            sd->sv.vy = DEFAULT_MAX_W0;
+        }
+
+        if (c == KEY_i)
+        {
+            sd->sv.vx = 0.0f;
+            sd->sv.vy = 0.0f;
+            sd->sv.vy = 0.0f;
+
+            msleep(120*2);
+
+            sd->sv.vx = DEFAULT_MAX_VX;
+            sd->sv.vy = DEFAULT_MAX_VY;
+            sd->sv.vy = DEFAULT_MAX_W0;
+
+            msleep(120*2);
+
+            sd->sv.vx = 0.0f;
+            sd->sv.vy = 0.0f;
+            sd->sv.vy = 0.0f;
+        }
+
+        msleep(200);
     }
 
     return true;
@@ -201,6 +231,8 @@ bool auto_speed_test(system_data* sd)
     float vx, vy, w0, d = 0.02f;
 
     vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
+
+    sleep(6);
 
     while(1)
     {
@@ -234,10 +266,10 @@ bool auto_speed_test(system_data* sd)
             up = !up;
         }
 
-        Sleep(1500);
+        sleep(2);
 
         if(sd->sv.vx == 0.0f)
-            Sleep(1000);
+            sleep(1);
     }
 }
 

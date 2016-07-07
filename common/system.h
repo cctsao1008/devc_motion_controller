@@ -57,6 +57,7 @@ typedef struct _system_data
 {
     /* system */
     char log[256];
+    uint16_t loop_time;
 
     /* motion control */
     system_state sv, cv, pv;
@@ -77,6 +78,8 @@ typedef struct _system_data
 } system_data;
 
 system_data* system_init(void);
+
+int msleep(unsigned long milisec);
 
 /* functions for motion control */
 bool motion_control_init(system_data* sd);

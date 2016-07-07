@@ -18,10 +18,12 @@
 #include "..\common\system.h"
 #include "..\platform\platform.h"
 
-#define LOOP_TIME 120
+#define DEFAULT_LOOP_TIME 120
+//#define DEFAULT_LOOP_TIME 500
 
-#define perf_begin()  clock_t start = clock()
-#define perf_end()    clock_t end = clock()
+#define BILLION 1000000000L
+
+void print_banner(void);
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
@@ -30,22 +32,12 @@ void mdelay(unsigned int ticks)
     while (ticks > clock());
 }
 
-int msleep(unsigned long milisec)
-{
-    struct timespec req = {0};
-    time_t sec = (int)(milisec / 1000);
-    milisec = milisec - (sec * 1000);
-    req.tv_sec = sec;
-    req.tv_nsec = milisec * 1000000L;
-    while(nanosleep(&req,&req) == (-1))
-         continue;
-    return 1;
-}
-
 int main(int argc, char *argv[])
 {
-	double loading;
-    clock_t ticks, s, e;
+	uint64_t t_diff;
+	float t_elapsed;
+	struct timespec start, end;
+    clock_t ticks;
     FILE *pLog;
     char log[128] = {"log/"};
 
@@ -84,10 +76,12 @@ int main(int argc, char *argv[])
     system_data* sd;
 
     srand((unsigned) time(NULL) + getpid());
+    
+    print_banner();
 
     #if 0  // REF.
     int t1, t2, ts;
-    QueryPerformanceFrequency(&ts);
+    QueryPerformance Frequency(&ts);
     QueryPerformanceCounter(&t1);
     Sleep(1234);
     QueryPerformanceCounter(&t2);
@@ -107,21 +101,24 @@ int main(int argc, char *argv[])
     };
 
     sd->mot.mode = 0;
+    sd->loop_time = DEFAULT_LOOP_TIME;
 
-    commander_init(sd);
     motion_control_init(sd);
     motor_control_init(sd);
-
-	mdelay(clock() + 2000);
+ 
+    commander_init(sd);
+    
+    mdelay(clock() + 3000);
 
     while(1)
     {
-        perf_begin();
+    	
+    	/* measure monotonic time */
+		clock_gettime(CLOCK_MONOTONIC, &start);	/* mark start time */
+
         motion_control_update(sd);
         motor_control_update(sd);
         //memset(sd->log, 0, sizeof(sd->log));
-        
-        //s = clock();
 
         ticks = clock();
 
@@ -133,14 +130,17 @@ int main(int argc, char *argv[])
 
 		system("cls");
 
-        if((clock() - ticks) > LOOP_TIME)
+        if((clock() - ticks) > (sd->loop_time))
             printf("[ERROR] log write time > LOOP_TIME !! \n");
         //else
         //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
 
-		printf("-------------------------------------------------------- \n");
-		printf(" Motion control system running.. %4.2f %% %ld ms \n", (float)(loading / LOOP_TIME) * 100, ticks);
-		printf("-------------------------------------------------------- \n\n");
+		t_elapsed += sd->t_delta;
+
+		print_banner();
+		
+		printf(" Motion Simulator running.. \n");
+		printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
 
 		printf(" [INFO] PID : \n");
 		printf(" [INFO] loop time = %9d (ms) \n\n", sd->t_delta);
@@ -154,18 +154,26 @@ int main(int argc, char *argv[])
         printf(" [INFO] w0 : \n");
         printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.w0, sd->cv.w0, sd->pv.w0);
 
-		//mdelay(ticks + 100);
+		//mdelay(ticks + 50);
 
-		perf_end(); 
-		
-		loading = (double)(end - start); 
+		clock_gettime(CLOCK_MONOTONIC, &end);	/* mark the end time */
 
-		//e = clock();     
+		t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
+		//printf(" [INFO] elapsed time = %llu nanoseconds\n", (long long unsigned int) t_diff);  
 
-        mdelay(ticks + LOOP_TIME);
-        //msleep(LOOP_TIME - (e - s));
+        mdelay(ticks + (sd->loop_time));
     }
 
     return 0;
+}
+
+void print_banner(void)
+{
+	printf("  __  __         _    _                  _____  _____  __  __          \n");
+	printf(" |  \\/  |       | |  (_)                / ____||_   _||  \\/  |       \n");
+	printf(" | \\  / |  ___  | |_  _   ___   _ __   | (___    | |  | \\  / |       \n");
+	printf(" | |\\/| | / _ \\ | __|| | / _ \\ | '_ \\   \\___ \\   | |  | |\\/| |  \n");
+	printf(" | |  | || (_) || |_ | || (_) || | | |  ____) | _| |_ | |  | |         \n");
+	printf(" |_|  |_| \\___/  \\__||_| \\___/ |_| |_| |_____/ |_____||_|  |_|    \n\n");
 }
 
