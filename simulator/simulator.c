@@ -133,39 +133,63 @@ int main(int argc, char *argv[])
 
         ticks = clock();
 
-        fprintf(pLog, "%10ld, ", sd->t_curr);
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.vx, sd->cv.vx, sd->pv.vx);
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.vy, sd->cv.vy, sd->pv.vy);
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ", sd->sv.w0, sd->cv.w0, sd->pv.w0);
-        fprintf(pLog, "\n");
-
-        system("cls");
-
-        if((clock() - ticks) > (sd->loop_time))
-            printf("[ERROR] log write time > LOOP_TIME !! \n");
-        //else
-        //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
-
         t_elapsed += sd->t_delta;
+
+        /* display system information */
+        system("cls");
 
         print_image(pImg);
 
         printf(" Motion Simulator running.. \n");
         printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
 
-        printf(" [INFO] PID : \n");
-        printf(" [INFO] loop time = %9d (ms) \n\n", sd->t_delta);
+        printf(" [loop time] ms                 : ");
+        printf(" %9d \n",
+            sd->t_delta);
 
-        printf(" [INFO] vx : \n");
-        printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.vx, sd->cv.vx, sd->pv.vx);
+        printf(" [vx] sv, cv, pv (m/s)          : ");
+        printf(" %9.4f %9.4f %9.4f \n",
+            sd->sv.vx, sd->cv.vx, sd->pv.vx);
 
-        printf(" [INFO] vy : \n");
-        printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.vy, sd->cv.vy, sd->pv.vy);
+        printf(" [vy] sv, cv, pv (m/s)          : ");
+        printf(" %9.4f %9.4f %9.4f \n",
+            sd->sv.vy, sd->cv.vy, sd->pv.vy);
 
-        printf(" [INFO] w0 : \n");
-        printf(" [INFO] sv = %9.4f, cv = %9.4f, pv = %9.4f \n\n", sd->sv.w0, sd->cv.w0, sd->pv.w0);
+        printf(" [w0] sv, cv, pv (rad/s)        : ");
+        printf(" %9.4f %9.4f %9.4f \n",
+            sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+        printf(" [rpm/o] m1, m2, m3, m4 (r/min) : ");
+        printf(" %9.4f %9.4f %9.4f %9.4f \n",
+            sd->mot.out.rpm1, sd->mot.out.rpm2,
+            sd->mot.out.rpm3, sd->mot.out.rpm4);
+
+        printf(" [rpm/i] m1, m2, m3, m4 (r/min) : ");
+        printf(" %9.4f %9.4f %9.4f %9.4f \n",
+            sd->mot.in.rpm1, sd->mot.in.rpm2,
+            sd->mot.in.rpm3, sd->mot.in.rpm4);
 
         //mdelay(ticks + 50);
+
+        /* log system data */
+        fprintf(pLog, "%10ld, ",
+            sd->t_curr);
+
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
+            sd->sv.vx, sd->cv.vx, sd->pv.vx);
+
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
+            sd->sv.vy, sd->cv.vy, sd->pv.vy);
+
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
+            sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+        fprintf(pLog, "\n");
+
+        if((clock() - ticks) > (sd->loop_time))
+            printf("[ERROR] log write time > LOOP_TIME !! \n");
+        //else
+        //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
 
         clock_gettime(CLOCK_MONOTONIC, &end);	/* mark the end time */
 
