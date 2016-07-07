@@ -30,10 +30,22 @@ void mdelay(unsigned int ticks)
     while (ticks > clock());
 }
 
+int msleep(unsigned long milisec)
+{
+    struct timespec req = {0};
+    time_t sec = (int)(milisec / 1000);
+    milisec = milisec - (sec * 1000);
+    req.tv_sec = sec;
+    req.tv_nsec = milisec * 1000000L;
+    while(nanosleep(&req,&req) == (-1))
+         continue;
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
 	double loading;
-    clock_t ticks;
+    clock_t ticks, s, e;
     FILE *pLog;
     char log[128] = {"log/"};
 
@@ -107,7 +119,9 @@ int main(int argc, char *argv[])
         perf_begin();
         motion_control_update(sd);
         motor_control_update(sd);
-        memset(sd->log, 0, sizeof(sd->log));
+        //memset(sd->log, 0, sizeof(sd->log));
+        
+        //s = clock();
 
         ticks = clock();
 
@@ -144,9 +158,12 @@ int main(int argc, char *argv[])
 
 		perf_end(); 
 		
-		loading = (double)(end - start);      
+		loading = (double)(end - start); 
+
+		//e = clock();     
 
         mdelay(ticks + LOOP_TIME);
+        //msleep(LOOP_TIME - (e - s));
     }
 
     return 0;
