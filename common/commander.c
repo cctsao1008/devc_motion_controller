@@ -6,6 +6,7 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +58,7 @@ bool commander_init(system_data* sd)
     pthread_t tid[4];
 
     pthread_create(&tid[0], NULL, (void *)&keypad_input_check, (void *)sd);
-    pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
+    //pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
 
     return true;
 }
