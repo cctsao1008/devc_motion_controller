@@ -6,6 +6,10 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#ifdef __cplusplus 
+    extern "C" { 
+#endif
+
 #pragma once
 
 #ifdef PLATFORM_OMR
@@ -47,7 +51,7 @@
      12,  35
      -------
 
-   Regression line equation: y = 35.2831183017210 + 0.22642996421197x
+    Regression line equation: y = 35.2831183017210 + 0.22642996421197x
  */
 #define DEFAULT_RPM2PWM_A               35.2831183017210f // Intercept (a)
 #define DEFAULT_RPM2PWM_B               0.22642996421197f // Slope (b)
@@ -55,4 +59,8 @@
 /* Guide Sensor */
 #define DEFAULT_GUIDE_SENSOR_OFFSET     (450.0f/2)
 
+#endif
+
+#ifdef __cplusplus 
+    } 
 #endif

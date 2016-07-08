@@ -6,6 +6,10 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#ifdef __cplusplus 
+    extern "C" { 
+#endif
+
 #pragma once
 
 #include <stdbool.h>
@@ -93,3 +97,6 @@ bool motor_control_update(system_data* sd);
 bool motor_driver_init(system_data* sd);
 bool motor_driver_update(system_data* sd);
 
+#ifdef __cplusplus 
+    } 
+#endif
