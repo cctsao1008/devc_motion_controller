@@ -11,8 +11,8 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=
 CppCompiler=
-Linker=
-IsCpp=0
+Linker=-lbgi -lgdi32 -luser32
+IsCpp=1
 Icon=
 ExeOutput=
 ObjectOutput=
@@ -141,8 +141,8 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit6]
-FileName=simulator.c
-CompileCpp=0
+FileName=simulator.cpp
+CompileCpp=1
 Folder=
 Compile=1
 Link=1

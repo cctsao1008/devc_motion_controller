@@ -14,6 +14,10 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <graphics.h>
+//#include <winbgim.h>
 
 #include "..\common\system.h"
 #include "..\platform\platform.h"
@@ -23,9 +27,9 @@
 
 #define BILLION 1000000000L
 
-void print_banner(char *data);
+using namespace std;
 
-unsigned char banner[] = {
+char banner[] = {
     0x20, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F,
     0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F,
     0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F,
@@ -63,8 +67,16 @@ unsigned char banner[] = {
     0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F,
     0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F,
     0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F, 0x5F,
-    0x5F, 0x5F, 0x5F, 0x0A
+    0x5F, 0x5F, 0x5F
 };
+
+void print_banner(char *data);
+
+/* plot chart */
+void plot_init(system_data *sd);
+void* plot_chart(void*);
+
+void* print_info(void *arg);
 
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
@@ -123,9 +135,11 @@ int main(int argc, char *argv[])
     /* setting value, control value, process value */
     system_data* sd;
 
-    srand((unsigned) time(NULL) + getpid());
+    //srand((unsigned) time(NULL) + getpid());
 
     print_banner(banner);
+
+    //while(1);
 
     #if 0  // REF.
     int t1, t2, ts;
@@ -149,6 +163,8 @@ int main(int argc, char *argv[])
 
     commander_init(sd);
 
+    plot_init(sd);
+
     mdelay(clock() + 3000);
 
     while(1)
@@ -163,15 +179,103 @@ int main(int argc, char *argv[])
 
         ticks = clock();
 
+        #if 1
+        //printf(" Motion Simulator running.. \n");
+        //printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
+
+        /* log system data */
+        fprintf(pLog, "%10ld, ",
+            sd->t_curr);
+
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
+            sd->sv.vx, sd->cv.vx, sd->pv.vx);
+
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
+            sd->sv.vy, sd->cv.vy, sd->pv.vy);
+
+        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
+            sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+        fprintf(pLog, "\n");
+        #endif
+
+        if((clock() - ticks) > (sd->loop_time))
+            printf("[ERROR] log write time > LOOP_TIME !! \n");
+        //else
+        //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
+
+        clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
+
+        t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
+        //printf(" [INFO] elapsed time = %llu nanoseconds\n", (long long unsigned int) t_diff);
+
         t_elapsed += sd->t_delta;
 
+        sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
+        sd->sys_elapsed_t = t_elapsed / 1000;
+
+        mdelay(ticks + (sd->loop_time));
+    }
+
+    return 0;
+}
+
+void print_banner(char *data)
+{
+    printf("%s \n\n", data);
+}
+
+void* plot_chart(void *arg)
+{
+    int gd = DETECT, gm, x, y, color, angle = 0;
+    initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
+
+    int line_x[3] = {0};
+    int line_y[3] = {0};
+
+    printf("[INFO] plot_chart !! \n");
+    printf("maxx = %d, maxy = %d \n", getmaxx(), getmaxy());
+    moveto(0, getmaxy());
+
+    line_y[0] = getmaxy(); line_y[1] = getmaxy(); line_y[2] = getmaxy();
+
+    delay(2000);
+
+    while(1)
+    {
+        // line 1
+        setcolor(RED);
+
+        moveto(	line_x[0], 	line_y[0]);
+        line_x[0] = line_x[0] + 1;  line_y[0] =  line_y[0] -1;
+        linerel(1, -1);
+
+        // line 2
+        setcolor(GREEN);
+
+        moveto(	line_x[1], 	line_y[1]);
+        line_x[1] = line_x[1] + 1;  line_y[1] =  line_y[1] -2;
+        linerel(1, -2);
+
+        delay(1000);
+    }
+}
+
+void* print_info(void *arg)
+{
+    system_data *sd = (system_data *) arg;
+
+    printf("[INFO] print_info !! \n");
+
+    while(1)
+    {
+        #if 1
         /* display system information */
         system("cls");
 
         print_banner(banner);
-
         printf(" Motion Simulator running.. \n");
-        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
+        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", sd->sys_usage, sd->sys_elapsed_t);
 
         printf(" [loop time] ms                 : ");
         printf(" %9d \n",
@@ -194,46 +298,28 @@ int main(int argc, char *argv[])
             sd->mot.out.rpm1, sd->mot.out.rpm2,
             sd->mot.out.rpm3, sd->mot.out.rpm4);
 
-        printf(" [rpm/i] m1, m2, m3, m4 (r/min) : ");
+        printf(" [pwm/o] m1, m2, m3, m4         : ");
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.in.rpm1, sd->mot.in.rpm2,
-            sd->mot.in.rpm3, sd->mot.in.rpm4);
+            sd->mot.out.pwm1, sd->mot.out.pwm2,
+            sd->mot.out.pwm3, sd->mot.out.pwm4);
 
-        //mdelay(ticks + 50);
+        printf(" [w/i] m1, m2, m3, m4 (r/min)   : ");
+        printf(" %9.4f %9.4f %9.4f %9.4f \n",
+            sd->mot.in.w1, sd->mot.in.w2,
+            sd->mot.in.w3, sd->mot.in.w4);
+        #endif
 
-        /* log system data */
-        fprintf(pLog, "%10ld, ",
-            sd->t_curr);
-
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
-            sd->sv.vx, sd->cv.vx, sd->pv.vx);
-
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
-            sd->sv.vy, sd->cv.vy, sd->pv.vy);
-
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
-            sd->sv.w0, sd->cv.w0, sd->pv.w0);
-
-        fprintf(pLog, "\n");
-
-        if((clock() - ticks) > (sd->loop_time))
-            printf("[ERROR] log write time > LOOP_TIME !! \n");
-        //else
-        //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
-
-        clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
-
-        t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
-        //printf(" [INFO] elapsed time = %llu nanoseconds\n", (long long unsigned int) t_diff);
-
-        mdelay(ticks + (sd->loop_time));
+        usleep(500000); // 50ms
     }
-
-    return 0;
 }
 
-void print_banner(char *data)
+void plot_init(system_data *sd)
 {
-    printf("%s \n", data);
+    /* test winbgim */
+    pthread_t tid[2];
+
+    pthread_create(&tid[0], NULL, &print_info, (void *)sd);
+    pthread_create(&tid[1], NULL, &plot_chart, (void *)sd);
+
 }
 

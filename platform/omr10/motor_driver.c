@@ -261,6 +261,11 @@ bool motor_driver_update(system_data* sd)
     pwm3 = RPM2PWM(sd->mot.out.rpm3);
     pwm4 = RPM2PWM(sd->mot.out.rpm4);
 
+    sd->mot.out.pwm1 = pwm1;
+    sd->mot.out.pwm2 = pwm2;
+    sd->mot.out.pwm3 = pwm3;
+    sd->mot.out.pwm4 = pwm4;
+
     #if 1
     uint8_t wb[128] = {0xEB, 0x90, 0xA3, 0x08,
                         fr2,  fr1,  fr3,  fr4,
@@ -288,37 +293,35 @@ bool motor_driver_update(system_data* sd)
     MSG(sd->log, "%9d %9d %9d %9d \n\n", pwm1, pwm2, pwm3, pwm4);
     #endif
 
+    if((fr1 != fr1_last) || (fr2 != fr2_last) || (fr3 != fr3_last) || (fr4 != fr4_last))
     {
-        if((fr1 != fr1_last) || (fr2 != fr2_last) || (fr3 != fr3_last) || (fr4 != fr4_last))
-        {
-            MSG(sd->log, "[INFO] motor_driver_update, fr changes... \n");
+        MSG(sd->log, "[INFO] motor_driver_update, fr changes... \n");
 
-            brake_n = 600 / sd->loop_time;
-        }
-
-        fr1_last = fr1;
-        fr2_last = fr2;
-        fr3_last = fr3;
-        fr4_last = fr4;
-
-        if(brake_n > 0)
-        {
-            MSG(sd->log, "[INFO] motor_driver_update, braking...(%d) \n", brake_n);
-
-            brake_n--;
-
-            uart_tx(sd->hComm, motor_stop, 6);
-
-            return true;
-        }
-
-        //uart_tx(sd->hComm, forward_test, 6);
-        uart_tx(sd->hComm, motor_ctrl, 6);
-
-        wb[127] = bcc(wb, 12);
-        uart_tx(sd->hComm, wb, 12);
-        uart_tx(sd->hComm, &wb[127], 1);
+        brake_n = 600 / sd->loop_time;
     }
+
+    fr1_last = fr1;
+    fr2_last = fr2;
+    fr3_last = fr3;
+    fr4_last = fr4;
+
+    if(brake_n > 0)
+    {
+        MSG(sd->log, "[INFO] motor_driver_update, braking...(%d) \n", brake_n);
+
+        brake_n--;
+
+        uart_tx(sd->hComm, motor_stop, 6);
+
+        return true;
+    }
+
+    //uart_tx(sd->hComm, forward_test, 6);
+    uart_tx(sd->hComm, motor_ctrl, 6);
+
+    wb[127] = bcc(wb, 12);
+    uart_tx(sd->hComm, wb, 12);
+    uart_tx(sd->hComm, &wb[127], 1);
 
 
     #if DEBUG

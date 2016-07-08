@@ -6,8 +6,8 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
-#ifdef __cplusplus 
-    extern "C" { 
+#ifdef __cplusplus
+    extern "C" {
 #endif
 
 #pragma once
@@ -62,6 +62,8 @@ typedef struct _system_data
     /* system */
     char log[256];
     uint16_t loop_time;
+    float sys_usage;
+    float sys_elapsed_t;
 
     /* motion control */
     system_state sv, cv, pv;
@@ -85,6 +87,9 @@ system_data* system_init(void);
 
 int msleep(unsigned long milisec);
 
+/* functions for aommander */
+bool commander_init(system_data* sd);
+
 /* functions for motion control */
 bool motion_control_init(system_data* sd);
 bool motion_control_update(system_data* sd);
@@ -97,6 +102,6 @@ bool motor_control_update(system_data* sd);
 bool motor_driver_init(system_data* sd);
 bool motor_driver_update(system_data* sd);
 
-#ifdef __cplusplus 
-    } 
+#ifdef __cplusplus
+    }
 #endif

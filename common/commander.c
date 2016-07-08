@@ -16,6 +16,7 @@
 #include <math.h>
 #include <time.h>
 #include <pthread.h>
+#include <conio.h>
 
 #include "system.h"
 #include "..\platform\platform.h"
@@ -57,6 +58,8 @@ bool commander_init(system_data* sd)
 {
     pthread_t tid[4];
 
+    //printf("[INFO] commander_init \n");
+
     pthread_create(&tid[0], NULL, (void *)&keypad_input_check, (void *)sd);
     //pthread_create(&tid[1], NULL, (void *)&auto_speed_test, (void *)sd);
 
@@ -66,14 +69,19 @@ bool commander_init(system_data* sd)
 bool keypad_input_check(system_data* sd)
 {
     float vx, vy, w0, d = 0.02f;
-    int c;
+    char c;
+
+    //printf("[INFO] keypad_input_check \n");
 
     while(1)
     {
         vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
 
-        c = getch();
+        c = getche();
+
         //MSG(sd->log, "[DEBUG] keypad_input_check, loop... (0x%X) \n", c);
+
+        printf("[INFO] commander_init \n");
 
         if (c == KEY_DOT)
         {
@@ -234,6 +242,8 @@ bool auto_speed_test(system_data* sd)
     vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
 
     sleep(6);
+
+    //printf("[INFO] auto_speed_test \n");
 
     while(1)
     {
