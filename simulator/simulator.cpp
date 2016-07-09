@@ -228,27 +228,6 @@ void plot_reset(pos *ps)
 
     clearviewport();
 
-    /* draw axis */
-    // x
-    moveto(   0, maxy / 4);
-    setcolor(GREEN);
-    lineto(maxx, maxy / 4);
-
-    moveto(       0, (maxy / 4) * 3);
-    setcolor(GREEN);
-    lineto(maxx / 2, (maxy / 4) * 3);
-
-    /* split window */
-    // x
-    moveto(   0, maxy / 2);
-    setcolor(WHITE);
-    lineto(maxx, maxy / 2);
-
-    // y
-    moveto(maxx / 2,    0);
-    setcolor(WHITE);
-    lineto(maxx / 2, maxy);
-
     /* reset x, y in each wiodow */
     // figure 1
     p[0].x = 0;
@@ -279,6 +258,12 @@ void plot_reset(pos *ps)
   |________________|________________|
 
  */
+
+#define SW1 0
+#define SW2 1
+#define SW3 2
+#define SW4 3
+
 void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
@@ -286,9 +271,10 @@ void* plot_chart(void *arg)
 
     int gd = DETECT, gm, x, y[4], size = 0;
     int count = 0;
-    void *buf[4];
+    int sw_x1[4], sw_y1[4], sw_x2[4], sw_y2[4];
 
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
+    //initwindow(640, 480, "First Sample");
     //setbkcolor(BLUE);
 
     pos p[4] = {0};
@@ -299,56 +285,113 @@ void* plot_chart(void *arg)
     maxx = getmaxx(); maxy = getmaxy();
 
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
+    
+    printf("%d %d %d %d \n", SW1, SW2, SW3, SW4);
 
-    plot_reset(p);
+    //plot_reset(p);
+    
+    #if 0
+    /* reset x, y in each wiodow */
+    // figure 1
+    p[0].x = 0;
+    p[0].y = maxy / 2;
+
+    // figure 2
+    p[1].x = maxx - 1;
+    p[1].y = maxy / 2;
+
+    // figure 3
+    p[2].x = 0;
+    p[2].y = maxy;
+
+    // figure 4
+    p[3].x = maxx / 2;
+    p[3].y = maxy;
+    #endif
 
     delay(2000);
 
     // figure 1
     y[0] = maxy / 4;
-    size = imagesize(1, 0, maxx / 2 - 1, maxy / 2 - 1);
-    printf("size = %d \n", size);
-    buf[0] = malloc(size);
-    getimage(1, 0, maxx / 2 - 1, maxy / 2 - 1, buf[0]);
+    sw_x1[SW1] = 1;
+    sw_y1[SW1] = 0;
+    sw_x2[SW1] = maxx / 2 - 1;
+    sw_y2[SW1] = maxy / 2 - 1;
+    
+    p[SW1].x = maxx / 2 - 1;
+    p[SW1].y = maxy / 2;
+
+    size = imagesize(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1]);
+
+    bitimage[SW1] = malloc(size);
+    getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
 
     // figure 2
     y[1] = maxy / 4;
+    sw_x1[SW2] = maxx / 2 + 1;
+    sw_y1[SW2] = 0;
+    sw_x2[SW2] = maxx - 1;
+    sw_y2[SW2] = maxy / 2 - 1;
+    
+    p[SW2].x = maxx - 1;
+    p[SW2].y = maxy / 2;
+
+    size = imagesize(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2]);
+
+    bitimage[SW2] = malloc(size);
+    getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
 
     // figure 3
     y[2] = (maxy / 4) * 3;
 
+	sw_x1[SW3] = 1;
+    sw_y1[SW3] = maxy / 2 + 1;
+    sw_x2[SW3] = maxx / 2 - 1;
+    sw_y2[SW3] = maxy - 1;
+
+	p[SW2].x = maxx - 1;
+    p[SW2].y =(maxy / 4) * 3;
+
+    size = imagesize(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3]);
+
+    bitimage[SW3] = malloc(size);
+    getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
     // figure 4
     y[3] = (maxy / 4) * 3;
 
     for(;;)
     {
+    	clearviewport();
+    	
         /* update figure 1, vx */
         setcolor(WHITE);
 
         moveto(p[0].x, y[0]);
 
-        putimage(0, 0, buf[0], COPY_PUT);
+        putimage(0, 0, bitimage[SW1], COPY_PUT);
         y[0] = p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4;
-        lineto(++p[0].x, y[0]);
-        getimage(1, 0, maxx / 2 - 1, maxy / 2 - 1, buf[0]);
+        lineto(p[0].x + 1, y[0]);
+        getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
 
         /* update figure 2, vy */
         setcolor(WHITE);
 
         moveto(p[1].x, y[1]);
 
-        y[1] = p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 4;
-        lineto(++p[1].x, y[1]);
-
+		putimage(maxx / 2 , 0, bitimage[SW2], COPY_PUT);
+        y[1] = p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 2;
+        lineto(p[1].x + 1, y[1]);
+		getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
 
         /* update figure 3, w0 */
         setcolor(WHITE);
 
-        moveto(p[2].x, y[2]);
+        //moveto(p[2].x, y[2]);
 
-        y[2] = p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4;
-        lineto(++p[2].x, y[2]);
-
+		//putimage(0, maxy / 2 + 1, bitimage[SW3], COPY_PUT);
+        //y[2] = p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4;
+        //lineto(++p[2].x, y[2]);
+		//getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
 
         /* update figure 4, vector */
         #if 0
@@ -358,14 +401,34 @@ void* plot_chart(void *arg)
         linerel(1, -1);
         #endif
 
+        #if 1
+        /* draw axis x */
+	    moveto(0, maxy / 4);
+	    setcolor(GREEN);
+	    lineto(maxx, maxy / 4);
+
+		/* draw axis y */
+	    moveto(0, (maxy / 4) * 3 + 2);
+	    setcolor(GREEN);
+	    lineto(maxx / 2, (maxy / 4) * 3 + 2);
+	
+	    /* split window */
+	    moveto(0, maxy / 2);
+	    setcolor(RED);
+	    lineto(maxx, maxy / 2);
+
+	    moveto(maxx / 2, 0);
+	    setcolor(RED);
+	    lineto(maxx / 2, maxy);
+	    #endif
         delay(sd->loop_time - 20);
 
         //if((count++ >= maxx) || (count++ >= maxy))
-        if((count++ >= maxx/2))
-        {
-            plot_reset(p);
-            count = 0;
-        }
+        //if((count++ >= maxx/2))
+        //{
+            //plot_reset(p);
+        //    count = 0;
+        //}
 
     }
 }
