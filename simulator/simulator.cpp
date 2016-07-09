@@ -27,7 +27,7 @@
 
 #define BILLION                     1000000000L
 
-#define EN_LOGGER                   true
+#define EN_LOGGER                   false
 #define EN_INFO                     true
 #define EN_CHART                    true
 
@@ -211,32 +211,110 @@ void print_banner(char *data)
     printf("%s \n\n", data);
 }
 
+typedef struct _pos
+{
+    int x;
+    int y;
+} pos;
+
+void plot_reset_pxy(pos *ps)
+{
+    int maxx, maxy;
+    pos *p;
+
+    p = ps;
+
+    maxx = getmaxx(); maxy = getmaxy();
+
+    clearviewport();
+
+    /* split window */
+    // x
+    moveto(   0, maxy / 2);
+    setcolor(WHITE);
+    lineto(maxx, maxy / 2);
+
+    // y
+    moveto(maxx / 2,    0);
+    setcolor(WHITE);
+    lineto(maxx / 2, maxy);
+
+    /* draw axis */
+    // x
+    moveto(   0, maxy / 4);
+    setcolor(GREEN);
+    lineto(maxx, maxy / 4);
+
+    moveto(       0, (maxy / 4) * 3);
+    setcolor(GREEN);
+    lineto(maxx / 2, (maxy / 4) * 3);
+
+
+
+    /* reset x, y in each wiodow */
+    // figure 2
+    p[0].x = 0;
+    p[0].y = maxy / 2;
+
+    // figure 2
+    p[1].x = maxx / 2;
+    p[1].y = maxy / 2;
+
+    // figure 3
+    p[2].x = 0;
+    p[2].y = maxy;
+
+    // figure 4
+    p[3].x = maxx / 2;
+    p[3].y = maxy;
+}
 void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
 
     int gd = DETECT, gm, x, y, color, angle = 0;
+    int count = 0;
+
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
 
-    int line_x[3] = {0};
-    int line_y[3] = {0};
+    pos p[4] = {0};
 
     int maxx, maxy;
 
     printf("[INFO] plot_chart !! \n");
     maxx = getmaxx(); maxy = getmaxy();
+
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
 
     /* split window */
-    moveto(   0, maxy/2);
-    lineto(maxx, maxy/2);
+    #if 0
+    moveto(   0, maxy / 2);
+    lineto(maxx, maxy / 2);
 
-    moveto(maxx/2,    0);
-    lineto(maxx/2, maxy);
+    moveto(maxx / 2,    0);
+    lineto(maxx / 2, maxy);
+    #endif
 
-    moveto(0, getmaxy());
 
-    line_y[0] = getmaxy(); line_y[1] = getmaxy(); line_y[2] = getmaxy();
+    /* init x, y in each wiodow */
+    #if 0
+    // figure 1
+    p[0].x = 0;
+    p[0].y = maxy / 2;
+
+    // figure 2
+    p[1].x = maxx / 2;
+    p[1].y = maxy / 2;
+
+    // figure 3
+    p[2].x = 0;
+    p[2].y = maxy;
+
+    // figure 4
+    p[3].x = maxx / 2;
+    p[3].y = maxy;
+    #endif
+    plot_reset_pxy(p);
 
     delay(2000);
 
@@ -245,22 +323,40 @@ void* plot_chart(void *arg)
         /* update figure 1, vx */
         setcolor(RED);
 
-        moveto(	line_x[0], 	line_y[0]);
-        line_x[0] = line_x[0] + 1;  line_y[0] =  line_y[0] -1;
-        linerel(1, -1);
+        moveto(p[0].x,   p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4);
+        lineto(++p[0].x, p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4);
 
         /* update figure 2, vy */
-        setcolor(GREEN);
+        setcolor(RED);
 
-        moveto(	line_x[1], 	line_y[1]);
-        line_x[1] = line_x[1] + 1;  line_y[1] =  line_y[1] -2;
-        linerel(1, -2);
+        moveto(p[1].x,   p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 4);
+        lineto(++p[1].x, p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 4);
+
 
         /* update figure 3, w0 */
+        setcolor(RED);
+
+        moveto(p[2].x,   p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4);
+        lineto(++p[2].x, p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4);
+
 
         /* update figure 4, vector */
+        #if 0
+        setcolor(RED);
 
-        delay(sd->loop_time);
+        moveto(	p[3].x++,   p[3].y--);
+        linerel(1, -1);
+        #endif
+
+        delay(sd->loop_time - 20);
+
+        //if((count++ >= maxx) || (count++ >= maxy))
+        if((count++ >= maxx/2))
+        {
+            plot_reset_pxy(p);
+            count = 0;
+        }
+
     }
 }
 
