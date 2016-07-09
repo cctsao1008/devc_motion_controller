@@ -252,7 +252,7 @@ void plot_reset_pxy(pos *ps)
 
 
     /* reset x, y in each wiodow */
-    // figure 2
+    // figure 1
     p[0].x = 0;
     p[0].y = maxy / 2;
 
@@ -272,7 +272,7 @@ void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
 
-    int gd = DETECT, gm, x, y, color, angle = 0;
+    int gd = DETECT, gm, x, y[4], color, angle = 0;
     int count = 0;
 
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
@@ -286,58 +286,49 @@ void* plot_chart(void *arg)
 
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
 
-    /* split window */
-    #if 0
-    moveto(   0, maxy / 2);
-    lineto(maxx, maxy / 2);
-
-    moveto(maxx / 2,    0);
-    lineto(maxx / 2, maxy);
-    #endif
-
-
-    /* init x, y in each wiodow */
-    #if 0
-    // figure 1
-    p[0].x = 0;
-    p[0].y = maxy / 2;
-
-    // figure 2
-    p[1].x = maxx / 2;
-    p[1].y = maxy / 2;
-
-    // figure 3
-    p[2].x = 0;
-    p[2].y = maxy;
-
-    // figure 4
-    p[3].x = maxx / 2;
-    p[3].y = maxy;
-    #endif
     plot_reset_pxy(p);
 
     delay(2000);
+
+    // figure 1
+    y[0] = maxy / 4;
+
+    // figure 2
+    y[1] = maxy / 4;
+
+    // figure 3
+    y[2] = (maxy / 4) * 3;
+
+    // figure 4
+    y[3] = (maxy / 4) * 3;
 
     for(;;)
     {
         /* update figure 1, vx */
         setcolor(RED);
 
-        moveto(p[0].x,   p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4);
-        lineto(++p[0].x, p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4);
+
+        moveto(p[0].x, y[0]);
+
+        y[0] = p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4;
+        lineto(++p[0].x, y[0]);
 
         /* update figure 2, vy */
         setcolor(RED);
 
-        moveto(p[1].x,   p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 4);
-        lineto(++p[1].x, p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 4);
+        moveto(p[1].x, y[1]);
+
+        y[1] = p[1].y - (int)(sd->cv.vy * maxy / 4) - maxy / 4;
+        lineto(++p[1].x, y[1]);
 
 
         /* update figure 3, w0 */
         setcolor(RED);
 
-        moveto(p[2].x,   p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4);
-        lineto(++p[2].x, p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4);
+        moveto(p[2].x, y[2]);
+
+        y[2] = p[2].y - (int)(sd->cv.w0 * maxy / 4) - maxy / 4;
+        lineto(++p[2].x, y[2]);
 
 
         /* update figure 4, vector */
