@@ -79,9 +79,7 @@ bool keypad_input_check(system_data* sd)
 
         c = getche();
 
-        //MSG(sd->log, "[DEBUG] keypad_input_check, loop... (0x%X) \n", c);
-
-        printf("[INFO] commander_init \n");
+        MSG(sd->log, "[DEBUG] keypad_input_check, loop... (%c) \n", c);
 
         if (c == KEY_DOT)
         {
