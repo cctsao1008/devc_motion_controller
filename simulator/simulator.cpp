@@ -267,6 +267,18 @@ void plot_reset(pos *ps)
     p[3].y = maxy;
 }
 
+/*
+   _________________________________
+  | window 1       | window 2       |
+  | vx             | vy             |
+  |                |                |
+  |________________|________________|
+  | window 3       | window 4       |
+  | w0             | vecotor        |
+  |                |                |
+  |________________|________________|
+
+ */
 void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
@@ -275,7 +287,7 @@ void* plot_chart(void *arg)
     int count = 0;
 
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
-    setbkcolor(BLUE);
+    //setbkcolor(BLUE);
 
     pos p[4] = {0};
 
@@ -305,8 +317,7 @@ void* plot_chart(void *arg)
     for(;;)
     {
         /* update figure 1, vx */
-        setcolor(RED);
-
+        setcolor(WHITE);
 
         moveto(p[0].x, y[0]);
 
@@ -314,7 +325,7 @@ void* plot_chart(void *arg)
         lineto(++p[0].x, y[0]);
 
         /* update figure 2, vy */
-        setcolor(RED);
+        setcolor(WHITE);
 
         moveto(p[1].x, y[1]);
 
@@ -323,7 +334,7 @@ void* plot_chart(void *arg)
 
 
         /* update figure 3, w0 */
-        setcolor(RED);
+        setcolor(WHITE);
 
         moveto(p[2].x, y[2]);
 
@@ -333,7 +344,7 @@ void* plot_chart(void *arg)
 
         /* update figure 4, vector */
         #if 0
-        setcolor(RED);
+        setcolor(WHITE);
 
         moveto(	p[3].x++,   p[3].y--);
         linerel(1, -1);
