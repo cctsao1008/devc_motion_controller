@@ -228,17 +228,6 @@ void plot_reset_pxy(pos *ps)
 
     clearviewport();
 
-    /* split window */
-    // x
-    moveto(   0, maxy / 2);
-    setcolor(WHITE);
-    lineto(maxx, maxy / 2);
-
-    // y
-    moveto(maxx / 2,    0);
-    setcolor(WHITE);
-    lineto(maxx / 2, maxy);
-
     /* draw axis */
     // x
     moveto(   0, maxy / 4);
@@ -249,7 +238,16 @@ void plot_reset_pxy(pos *ps)
     setcolor(GREEN);
     lineto(maxx / 2, (maxy / 4) * 3);
 
+    /* split window */
+    // x
+    moveto(   0, maxy / 2);
+    setcolor(WHITE);
+    lineto(maxx, maxy / 2);
 
+    // y
+    moveto(maxx / 2,    0);
+    setcolor(WHITE);
+    lineto(maxx / 2, maxy);
 
     /* reset x, y in each wiodow */
     // figure 1
