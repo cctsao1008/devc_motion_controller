@@ -28,7 +28,7 @@
 #define BILLION                     1000000000L
 
 #define EN_LOGGER                   false
-#define EN_INFO                     true
+#define EN_INFO                     false
 #define EN_CHART                    true
 
 using namespace std;
@@ -282,9 +282,11 @@ void plot_reset(pos *ps)
 void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
+    void *bitimage[4];
 
-    int gd = DETECT, gm, x, y[4], color, angle = 0;
+    int gd = DETECT, gm, x, y[4], size = 0;
     int count = 0;
+    void *buf[4];
 
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
     //setbkcolor(BLUE);
@@ -304,6 +306,10 @@ void* plot_chart(void *arg)
 
     // figure 1
     y[0] = maxy / 4;
+    size = imagesize(1, 0, maxx / 2 - 1, maxy / 2 - 1);
+    printf("size = %d \n", size);
+    buf[0] = malloc(size);
+    getimage(1, 0, maxx / 2 - 1, maxy / 2 - 1, buf[0]);
 
     // figure 2
     y[1] = maxy / 4;
@@ -321,8 +327,10 @@ void* plot_chart(void *arg)
 
         moveto(p[0].x, y[0]);
 
+        putimage(0, 0, buf[0], COPY_PUT);
         y[0] = p[0].y - (int)(sd->cv.vx * maxy / 4) - maxy / 4;
         lineto(++p[0].x, y[0]);
+        getimage(1, 0, maxx / 2 - 1, maxy / 2 - 1, buf[0]);
 
         /* update figure 2, vy */
         setcolor(WHITE);
