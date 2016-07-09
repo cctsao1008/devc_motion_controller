@@ -375,36 +375,3 @@ bool pid_control_update(system_data* sd)
     return true;
 }
 
-bool soft_brake(system_data* sd)
-{
-    /* check vx */
-    if((sd->sv.vx > 0.0f) && (sd->cv.vx < 0.0f))
-    {
-        MSG(sd->log, "[INFO] soft_brake, vx, +sv, -cv! \n");
-    }
-    else if((sd->sv.vx < 0.0f) && (sd->cv.vx > 0.0f))
-    {
-        MSG(sd->log, "[INFO] soft_brake, vx, +sv, -cv! \n");
-    }
-
-    /* check vy */
-    if((sd->sv.vy > 0.0f) && (sd->cv.vy < 0.0f))
-    {
-        MSG(sd->log, "[INFO] soft_brake, vy, +sv, -cv! \n");
-    }
-    else if((sd->sv.vy < 0.0f) && (sd->cv.vy > 0.0f))
-    {
-        MSG(sd->log, "[INFO] soft_brake, vy, +sv, -cv! \n");
-    }
-
-    /* check w0 */
-    if((sd->sv.w0 > 0.0f) && (sd->cv.w0 < 0.0f))
-    {
-        MSG(sd->log, "[INFO] soft_brake, w0, +sv, -cv! \n");
-    }
-    else if((sd->sv.w0 < 0.0f) && (sd->cv.w0 > 0.0f))
-    {
-        MSG(sd->log, "[INFO] soft_brake, w0, +sv, -cv! \n");
-    }
-}
-
