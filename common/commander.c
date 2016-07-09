@@ -245,7 +245,7 @@ bool auto_speed_test(system_data* sd)
 
     //printf("[INFO] auto_speed_test \n");
 
-    while(1)
+    for(;;)
     {
         MSG(sd->log, "[INFO] auto_speed_test... \n");
 

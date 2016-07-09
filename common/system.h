@@ -63,7 +63,7 @@ typedef struct _system_data
     char log[256];
     uint16_t loop_time;
     float sys_usage;
-    float sys_elapsed_t;
+    float sys_elaps;
 
     /* motion control */
     system_state sv, cv, pv;

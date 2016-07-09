@@ -22,10 +22,14 @@
 #include "..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEFAULT_LOOP_TIME 120
-//#define DEFAULT_LOOP_TIME 500
+#define DEFAULT_LOOP_TIME           120
+//#define DEFAULT_LOOP_TIME       500
 
-#define BILLION 1000000000L
+#define BILLION                     1000000000L
+
+#define EN_LOGGER                   true
+#define EN_INFO                     true
+#define EN_CHART                    true
 
 using namespace std;
 
@@ -71,6 +75,7 @@ char banner[] = {
 };
 
 void print_banner(char *data);
+void data_logger(FILE *fp, system_data *sd);
 
 /* plot chart */
 void plot_init(system_data *sd);
@@ -88,9 +93,9 @@ void mdelay(unsigned int ticks)
 int main(int argc, char *argv[])
 {
     char log[128] = {0};
-    float t_elapsed;
     struct timespec start, end;
 
+    float t_elap;
     uint64_t t_diff;
     clock_t ticks;
     FILE *pLog;
@@ -101,6 +106,7 @@ int main(int argc, char *argv[])
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
 
+    #if EN_LOGGER
     sprintf(log_name, "%d%02d%02d%02d%02d%02d.csv", tm.tm_year + 1900,
                                                     tm.tm_mon + 1,
                                                     tm.tm_mday,
@@ -131,6 +137,7 @@ int main(int argc, char *argv[])
         printf("[ERROR] fopen failure!");
         exit(0);
     }
+    #endif
 
     /* setting value, control value, process value */
     system_data* sd;
@@ -167,7 +174,7 @@ int main(int argc, char *argv[])
 
     mdelay(clock() + 3000);
 
-    while(1)
+    for(;;)
     {
 
         /* measure monotonic time */
@@ -175,44 +182,23 @@ int main(int argc, char *argv[])
 
         motion_control_update(sd);
         motor_control_update(sd);
-        //memset(sd->log, 0, sizeof(sd->log));
 
         ticks = clock();
 
-        #if 1
-        //printf(" Motion Simulator running.. \n");
-        //printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", (t_diff / (float)((sd->loop_time) * 1000000)) * 100, t_elapsed / 1000);
-
-        /* log system data */
-        fprintf(pLog, "%10ld, ",
-            sd->t_curr);
-
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
-            sd->sv.vx, sd->cv.vx, sd->pv.vx);
-
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
-            sd->sv.vy, sd->cv.vy, sd->pv.vy);
-
-        fprintf(pLog, "%9.4f, %9.4f, %9.4f, ",
-            sd->sv.w0, sd->cv.w0, sd->pv.w0);
-
-        fprintf(pLog, "\n");
+        #if EN_LOGGER
+        data_logger(pLog, sd);
         #endif
 
         if((clock() - ticks) > (sd->loop_time))
             printf("[ERROR] log write time > LOOP_TIME !! \n");
-        //else
-        //    printf("[INFO] log write time = %d (ms) %d \n", clock() - ticks, ticks);
 
         clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
 
         t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
-        //printf(" [INFO] elapsed time = %llu nanoseconds\n", (long long unsigned int) t_diff);
-
-        t_elapsed += sd->t_delta;
+        t_elap += sd->t_delta;
 
         sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
-        sd->sys_elapsed_t = t_elapsed / 1000;
+        sd->sys_elaps = t_elap / 1000;
 
         mdelay(ticks + (sd->loop_time));
     }
@@ -227,37 +213,54 @@ void print_banner(char *data)
 
 void* plot_chart(void *arg)
 {
+    system_data *sd = (system_data *) arg;
+
     int gd = DETECT, gm, x, y, color, angle = 0;
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
 
     int line_x[3] = {0};
     int line_y[3] = {0};
 
+    int maxx, maxy;
+
     printf("[INFO] plot_chart !! \n");
-    printf("maxx = %d, maxy = %d \n", getmaxx(), getmaxy());
+    maxx = getmaxx(); maxy = getmaxy();
+    printf("maxx = %d, maxy = %d \n", maxx, maxy);
+
+    /* split window */
+    moveto(   0, maxy/2);
+    lineto(maxx, maxy/2);
+
+    moveto(maxx/2,    0);
+    lineto(maxx/2, maxy);
+
     moveto(0, getmaxy());
 
     line_y[0] = getmaxy(); line_y[1] = getmaxy(); line_y[2] = getmaxy();
 
     delay(2000);
 
-    while(1)
+    for(;;)
     {
-        // line 1
+        /* update figure 1, vx */
         setcolor(RED);
 
         moveto(	line_x[0], 	line_y[0]);
         line_x[0] = line_x[0] + 1;  line_y[0] =  line_y[0] -1;
         linerel(1, -1);
 
-        // line 2
+        /* update figure 2, vy */
         setcolor(GREEN);
 
         moveto(	line_x[1], 	line_y[1]);
         line_x[1] = line_x[1] + 1;  line_y[1] =  line_y[1] -2;
         linerel(1, -2);
 
-        delay(1000);
+        /* update figure 3, w0 */
+
+        /* update figure 4, vector */
+
+        delay(sd->loop_time);
     }
 }
 
@@ -267,7 +270,7 @@ void* print_info(void *arg)
 
     printf("[INFO] print_info !! \n");
 
-    while(1)
+    for(;;)
     {
         #if 1
         /* display system information */
@@ -275,7 +278,7 @@ void* print_info(void *arg)
 
         print_banner(banner);
         printf(" Motion Simulator running.. \n");
-        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", sd->sys_usage, sd->sys_elapsed_t);
+        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", sd->sys_usage, sd->sys_elaps);
 
         printf(" [loop time] ms                 : ");
         printf(" %9d \n",
@@ -307,6 +310,8 @@ void* print_info(void *arg)
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
             sd->mot.in.w1, sd->mot.in.w2,
             sd->mot.in.w3, sd->mot.in.w4);
+
+        printf("\n\n");
         #endif
 
         usleep(500000); // 50ms
@@ -318,8 +323,31 @@ void plot_init(system_data *sd)
     /* test winbgim */
     pthread_t tid[2];
 
+    #if EN_INFO
     pthread_create(&tid[0], NULL, &print_info, (void *)sd);
-    pthread_create(&tid[1], NULL, &plot_chart, (void *)sd);
+    #endif
 
+    #if EN_CHART
+    pthread_create(&tid[1], NULL, &plot_chart, (void *)sd);
+    #endif
+
+}
+
+void data_logger(FILE *fp, system_data *sd)
+{
+    /* data logger */
+    fprintf(fp, "%10ld, ",
+        sd->t_curr);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.vx, sd->cv.vx, sd->pv.vx);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.vy, sd->cv.vy, sd->pv.vy);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+    fprintf(fp, "\n");
 }
 

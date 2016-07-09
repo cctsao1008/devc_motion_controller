@@ -97,6 +97,7 @@ void timer3_callback_handler(int signum)
 
 /* parameters */
 
+#if 0
 /* FreeRTOS */
 void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 {
@@ -132,4 +133,5 @@ unsigned long ulGetRunTimeCounterValue( void )
     FreeRTOSConfig.h header file. */
     return 0UL;
 }
+#endif
 
