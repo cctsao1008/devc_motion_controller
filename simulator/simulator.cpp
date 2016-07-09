@@ -217,7 +217,7 @@ typedef struct _pos
     int y;
 } pos;
 
-void plot_reset_pxy(pos *ps)
+void plot_reset(pos *ps)
 {
     int maxx, maxy;
     pos *p;
@@ -266,6 +266,7 @@ void plot_reset_pxy(pos *ps)
     p[3].x = maxx / 2;
     p[3].y = maxy;
 }
+
 void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
@@ -274,6 +275,7 @@ void* plot_chart(void *arg)
     int count = 0;
 
     initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
+    setbkcolor(BLUE);
 
     pos p[4] = {0};
 
@@ -284,7 +286,7 @@ void* plot_chart(void *arg)
 
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
 
-    plot_reset_pxy(p);
+    plot_reset(p);
 
     delay(2000);
 
@@ -342,11 +344,44 @@ void* plot_chart(void *arg)
         //if((count++ >= maxx) || (count++ >= maxy))
         if((count++ >= maxx/2))
         {
-            plot_reset_pxy(p);
+            plot_reset(p);
             count = 0;
         }
 
     }
+}
+
+void plot_init(system_data *sd)
+{
+    /* test winbgim */
+    pthread_t tid[2];
+
+    #if EN_INFO
+    pthread_create(&tid[0], NULL, &print_info, (void *)sd);
+    #endif
+
+    #if EN_CHART
+    pthread_create(&tid[1], NULL, &plot_chart, (void *)sd);
+    #endif
+
+}
+
+void data_logger(FILE *fp, system_data *sd)
+{
+    /* data logger */
+    fprintf(fp, "%10ld, ",
+        sd->t_curr);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.vx, sd->cv.vx, sd->pv.vx);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.vy, sd->cv.vy, sd->pv.vy);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+    fprintf(fp, "\n");
 }
 
 void* print_info(void *arg)
@@ -401,38 +436,5 @@ void* print_info(void *arg)
 
         usleep(500000); // 50ms
     }
-}
-
-void plot_init(system_data *sd)
-{
-    /* test winbgim */
-    pthread_t tid[2];
-
-    #if EN_INFO
-    pthread_create(&tid[0], NULL, &print_info, (void *)sd);
-    #endif
-
-    #if EN_CHART
-    pthread_create(&tid[1], NULL, &plot_chart, (void *)sd);
-    #endif
-
-}
-
-void data_logger(FILE *fp, system_data *sd)
-{
-    /* data logger */
-    fprintf(fp, "%10ld, ",
-        sd->t_curr);
-
-    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
-        sd->sv.vx, sd->cv.vx, sd->pv.vx);
-
-    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
-        sd->sv.vy, sd->cv.vy, sd->pv.vy);
-
-    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
-        sd->sv.w0, sd->cv.w0, sd->pv.w0);
-
-    fprintf(fp, "\n");
 }
 
