@@ -366,20 +366,17 @@ void* plot_chart(void *arg)
     /* update all sub windows */
     for(;;)
     {
-        //clearviewport();
-        cleardevice();
+        clearviewport();
+        //cleardevice();
 
         /*
              update sub window 1, vx
          */
         #ifdef SW1
-        //printf("[INFO] updating sub window 1... \n");
         setcolor(WHITE);
 
         moveto(x1[SW1], y1[SW1][PV]);
 
-        //printf("[INFO] putimage... \n");
-        //printf("%d, %d, %x \n", sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1]);
         putimage(sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1], XOR_PUT);
 
         y2[SW1] = sw_ymid[SW1] - (sd->pv.vx * (maxy / 4));
@@ -388,7 +385,6 @@ void* plot_chart(void *arg)
 
         y1[SW1][PV] = y2[SW1];
 
-        //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
         #endif
 
@@ -396,13 +392,10 @@ void* plot_chart(void *arg)
              update sub window 2, vy
          */
         #ifdef SW2
-        //printf("[INFO] updating sub window 2... \n");
         setcolor(WHITE);
 
         moveto(x1[SW2], y1[SW2][PV]);
 
-        //printf("[INFO] putimage... \n");
-        //printf("%d, %d, %x \n", sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2]);
         putimage(sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2], XOR_PUT);
 
         y2[SW2] = sw_ymid[SW2] - (sd->pv.vy * (maxy / 4));
@@ -411,7 +404,6 @@ void* plot_chart(void *arg)
 
         y1[SW2][PV] = y2[SW2];
 
-        //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
         #endif
 
@@ -419,13 +411,10 @@ void* plot_chart(void *arg)
              update sub window 3, w0
          */
         #ifdef SW3
-        //printf("[INFO] updating sub window 3... \n");
         setcolor(WHITE);
 
         moveto(x1[SW3], y1[SW3][PV]);
 
-        //printf("[INFO] putimage... \n");
-        //printf("%d, %d, %x \n", sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3]);
         putimage(sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3], XOR_PUT);
 
         y2[SW3] = sw_ymid[SW3] - (sd->pv.w0 * (maxy / 4));
@@ -434,7 +423,6 @@ void* plot_chart(void *arg)
 
         y1[SW3][PV] = y2[SW3];
 
-        //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
         #endif
 
@@ -470,13 +458,13 @@ void* plot_chart(void *arg)
         setcolor(RED);
         lineto(maxx / 2, maxy);
 
-        setcolor(RED);
-        settextstyle(10, HORIZ_DIR, 3);
-        sprintf(text, "vx = %8.4f", sd->sv.vx);
+        setcolor(WHITE);
+        settextstyle(10, HORIZ_DIR, 1);
+        sprintf(text, "vx = %8.4f (m/s)", sd->sv.vx);
         outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, text);
-        sprintf(text, "vy = %8.4f", sd->sv.vy);
+        sprintf(text, "vy = %8.4f (m/s)", sd->sv.vy);
         outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, text);
-        sprintf(text, "w0 = %8.4f", sd->sv.w0);
+        sprintf(text, "w0 = %8.4f (rad/s)", sd->sv.w0);
         outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, text);
 
         setcolor(YELLOW);
@@ -491,9 +479,14 @@ void* plot_chart(void *arg)
         /* status bar */
         setfillstyle(SOLID_FILL, RED);
         bar(0, maxy + 1, maxx + 1, maxy + 30);
+        setcolor(WHITE);
+        setbkcolor(RED);
+        sprintf(text, " time elapsed %6.2f sec", sd->sys_elaps);
+        outtextxy(0, maxy + 6, text);
+        setbkcolor(BLACK);
         #endif
 
-        delay(100); // 10ms, 100Hz
+        delay(sd->loop_time / 2); // nyquist sample theorem
     }
 }
 
