@@ -56,20 +56,18 @@ bool motor_control_init(system_data* sd)
 
 float limiter(float w)
 {
-    //if((w < 0.628f) && (w >= 0.0f))
-    //	return 0.628f;
-    //else if((w > -0.628f) && (w <= 0.0f))
-    //	return -0.628f;
+    if((w < 0.1f) && (w > -0.1f))
+        return 0.0f;
 
     return w;
 }
 
 bool motor_control_update(system_data* sd)
 {
-    float w1 = sd->mot.out.w1;
-    float w2 = sd->mot.out.w2;
-    float w3 = sd->mot.out.w3;
-    float w4 = sd->mot.out.w4;
+    float w1 = limiter(sd->mot.out.w1);
+    float w2 = limiter(sd->mot.out.w2);
+    float w3 = limiter(sd->mot.out.w3);
+    float w4 = limiter(sd->mot.out.w4);
 
     bool fr1, fr2, fr3, fr4;
     float rpm1, rpm2, rpm3, rpm4;
@@ -94,16 +92,10 @@ bool motor_control_update(system_data* sd)
                                                  sd->mot.in.w3, sd->mot.in.w4);
     #endif
 
-
-    w1 = limiter(w1);
-    w2 = limiter(w2);
-    w3 = limiter(w3);
-    w4 = limiter(w4);
-
-    fr1 = (w1 > 0.0f) ? 1 : 0; w1 = fabs(w1);
-    fr2 = (w2 > 0.0f) ? 1 : 0; w2 = fabs(w2);
-    fr3 = (w3 > 0.0f) ? 1 : 0; w3 = fabs(w3);
-    fr4 = (w4 > 0.0f) ? 1 : 0; w4 = fabs(w4);
+    fr1 = (w1 >= 0.0f) ? 1 : 0; w1 = fabs(w1);
+    fr2 = (w2 >= 0.0f) ? 1 : 0; w2 = fabs(w2);
+    fr3 = (w3 >= 0.0f) ? 1 : 0; w3 = fabs(w3);
+    fr4 = (w4 >= 0.0f) ? 1 : 0; w4 = fabs(w4);
 
     rpm1 = AGR2RPM(w1) * MIN2S;
     rpm2 = AGR2RPM(w2) * MIN2S;
