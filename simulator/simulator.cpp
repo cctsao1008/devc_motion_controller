@@ -367,6 +367,7 @@ void* plot_chart(void *arg)
     {
         clearviewport();
         //cleardevice();
+        setlinestyle(SOLID_LINE, 0xFFFF, 2);
 
         /*
              update sub window 1, vx
@@ -451,7 +452,7 @@ void* plot_chart(void *arg)
         moveto(0, maxy / 2);
         setcolor(RED);
         lineto(maxx, maxy / 2);
-        rectangle(0, 0, maxx, maxy);
+        rectangle(1, 1, maxx, maxy);
 
         moveto(maxx / 2, 0);
         setcolor(RED);
@@ -459,28 +460,28 @@ void* plot_chart(void *arg)
 
         setcolor(WHITE);
         settextstyle(BOLD_FONT, HORIZ_DIR, 1);
-        sprintf(text, "vx = %8.4f (m/s)", sd->sv.vx);
+        sprintf(text, "vx = %5.2f (m/s)", sd->sv.vx);
         outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, text);
-        sprintf(text, "vy = %8.4f (m/s)", sd->sv.vy);
+        sprintf(text, "vy = %5.2f (m/s)", sd->sv.vy);
         outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, text);
-        sprintf(text, "w0 = %8.4f (rad/s)", sd->sv.w0);
+        sprintf(text, "w0 = %5.2f (rad/s)", sd->sv.w0);
         outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, text);
 
         setcolor(YELLOW);
         settextstyle(BOLD_FONT, HORIZ_DIR, 1);
-        sprintf(text, "%8.2f", sd->pv.vx);
-        outtextxy(sw_x2[SW1] - 100, y2[SW1] - 30, text);
-        sprintf(text, "%8.2f", sd->pv.vy);
-        outtextxy(sw_x2[SW2] - 100, y2[SW2] - 30, text);
-        sprintf(text, "%8.2f", sd->pv.w0);
-        outtextxy(sw_x2[SW3] - 100, y2[SW3] - 30, text);
+        sprintf(text, "%5.2f", sd->pv.vx);
+        outtextxy(sw_x2[SW1] - 60, y2[SW1] - 30, text);
+        sprintf(text, "%5.2f", sd->pv.vy);
+        outtextxy(sw_x2[SW2] - 60, y2[SW2] - 30, text);
+        sprintf(text, "%5.2f", sd->pv.w0);
+        outtextxy(sw_x2[SW3] - 60, y2[SW3] - 30, text);
 
         /* status bar */
         setfillstyle(SOLID_FILL, RED);
         bar(0, maxy + 1, maxx + 1, maxy + 30);
         setcolor(WHITE);
         setbkcolor(RED);
-        sprintf(text, " time elapsed %6.2f sec", sd->sys_elaps);
+        sprintf(text, " time elapsed %8.2f sec", sd->sys_elaps);
         outtextxy(0, maxy + 6, text);
         setbkcolor(BLACK);
         #endif
