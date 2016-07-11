@@ -429,6 +429,7 @@ void* plot_chart(void *arg)
         moveto(0, maxy / 2);
         setcolor(RED);
         lineto(maxx, maxy / 2);
+        rectangle(0, 0, maxx, maxy);
 
         moveto(maxx / 2, 0);
         setcolor(RED);
@@ -440,7 +441,7 @@ void* plot_chart(void *arg)
         outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, (char *)"w0");
         #endif
 
-        delay(200); // 10ms, 100Hz
+        delay(500); // 10ms, 100Hz
     }
 }
 
