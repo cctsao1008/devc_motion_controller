@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <graphics.h>
 //#include <winbgim.h>
+#include <SDL2/SDL.h>
 
 #include "..\common\system.h"
 #include "..\platform\platform.h"
@@ -99,6 +100,35 @@ int main(int argc, char *argv[])
     uint64_t t_diff;
     clock_t ticks;
     FILE *pLog;
+
+    /* SDL2 test code */
+    #if 0
+    const int SCREEN_WIDTH = 640;
+    const int SCREEN_HEIGHT = 480;
+    SDL_Window* window = NULL;
+    SDL_Surface* screenSurface = NULL;
+
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ){
+        printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+    }
+    else{
+        window = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        if( window == NULL ){
+            printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+        }
+        else{
+            screenSurface = SDL_GetWindowSurface( window );
+            SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+            SDL_UpdateWindowSurface( window );
+            SDL_Delay( 2000 );
+        }
+    }
+
+    SDL_DestroyWindow( window );
+    SDL_Quit();
+    SDL_Delay( 10000 );
+    exit(0);
+    #endif
 
     /* use date & time as file name. */
     char log_name[64];
@@ -244,10 +274,10 @@ void* plot_chart(void *arg)
 
     int gd = DETECT, gm, size = 0;
     int sw_x1[4], sw_y1[4], sw_x2[4], sw_y2[4], sw_ymid[4];
-    int x1[4], y1[4], x2[4], y2[4];
+    int x1[4], y1[4][3], x2[4], y2[4];
 
     //initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
-    initwindow(640, 480, "First Sample");
+    initwindow(640, 480 + 30, "First Sample");
     //setbkcolor(BLUE);
 
     pos p[4] = {0};
@@ -255,7 +285,7 @@ void* plot_chart(void *arg)
     int maxx, maxy;
 
     printf("[INFO] plot_chart !! \n");
-    maxx = getmaxx(); maxy = getmaxy();
+    maxx = getmaxx(); maxy = getmaxy() - 30;
 
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
 
@@ -273,7 +303,9 @@ void* plot_chart(void *arg)
     sw_ymid[SW1] = maxy / 4;
 
     x1[SW1] = (maxx / 2) - 1;
-    y1[SW1] = maxy / 4;
+    y1[SW1][SV] = maxy / 4;
+    y1[SW1][CV] = maxy / 4;
+    y1[SW1][PV] = maxy / 4;
     x2[SW1] = maxx / 2;
     y2[SW1] = maxy / 4;
 
@@ -293,7 +325,9 @@ void* plot_chart(void *arg)
     sw_ymid[SW2] = maxy / 4;
 
     x1[SW2] = maxx - 1;
-    y1[SW2] = maxy / 4;
+    y1[SW2][SV] = maxy / 4;
+    y1[SW2][CV] = maxy / 4;
+    y1[SW2][PV] = maxy / 4;
     x2[SW2] = maxx;
     y2[SW2] = maxy / 4;
 
@@ -313,7 +347,9 @@ void* plot_chart(void *arg)
     sw_ymid[SW3] = (maxy / 4) * 3;
 
     x1[SW3] = (maxx / 2) - 1;
-    y1[SW3] = (maxy / 4) * 3;
+    y1[SW3][SV] = (maxy / 4) * 3;
+    y1[SW3][CV] = (maxy / 4) * 3;
+    y1[SW3][PV] = (maxy / 4) * 3;
     x2[SW3] = maxx / 2;
     y2[SW3] = (maxy / 4) * 3;
 
@@ -341,7 +377,7 @@ void* plot_chart(void *arg)
         //printf("[INFO] updating sub window 1... \n");
         setcolor(WHITE);
 
-        moveto(x1[SW1], y1[SW1]);
+        moveto(x1[SW1], y1[SW1][PV]);
 
         //printf("[INFO] putimage... \n");
         //printf("%d, %d, %x \n", sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1]);
@@ -351,7 +387,7 @@ void* plot_chart(void *arg)
 
         lineto(x2[SW1], y2[SW1]);
 
-        y1[SW1] = y2[SW1];
+        y1[SW1][PV] = y2[SW1];
 
         //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
@@ -364,7 +400,7 @@ void* plot_chart(void *arg)
         //printf("[INFO] updating sub window 2... \n");
         setcolor(WHITE);
 
-        moveto(x1[SW2], y1[SW2]);
+        moveto(x1[SW2], y1[SW2][PV]);
 
         //printf("[INFO] putimage... \n");
         //printf("%d, %d, %x \n", sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2]);
@@ -374,7 +410,7 @@ void* plot_chart(void *arg)
 
         lineto(x2[SW2], y2[SW2]);
 
-        y1[SW2] = y2[SW2];
+        y1[SW2][PV] = y2[SW2];
 
         //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
@@ -387,7 +423,7 @@ void* plot_chart(void *arg)
         //printf("[INFO] updating sub window 3... \n");
         setcolor(WHITE);
 
-        moveto(x1[SW3], y1[SW3]);
+        moveto(x1[SW3], y1[SW3][PV]);
 
         //printf("[INFO] putimage... \n");
         //printf("%d, %d, %x \n", sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3]);
@@ -397,7 +433,7 @@ void* plot_chart(void *arg)
 
         lineto(x2[SW3], y2[SW3]);
 
-        y1[SW3] = y2[SW3];
+        y1[SW3][PV] = y2[SW3];
 
         //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
@@ -435,10 +471,14 @@ void* plot_chart(void *arg)
         setcolor(RED);
         lineto(maxx / 2, maxy);
 
-        settextstyle(4, HORIZ_DIR, 3);
+        settextstyle(8, HORIZ_DIR, 3);
         outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, (char *)"vx");
         outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, (char *)"vy");
         outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, (char *)"w0");
+
+        /* status bar */
+        setfillstyle(SOLID_FILL, RED);
+        bar(0, maxy + 1, maxx + 1, maxy + 30);
         #endif
 
         delay(500); // 10ms, 100Hz
