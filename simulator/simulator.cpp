@@ -126,7 +126,6 @@ int main(int argc, char *argv[])
 
     SDL_DestroyWindow( window );
     SDL_Quit();
-    SDL_Delay( 10000 );
     exit(0);
     #endif
 
@@ -271,14 +270,14 @@ void* plot_chart(void *arg)
 {
     system_data *sd = (system_data *) arg;
     void *bitimage[4];
+    char text[64];
 
     int gd = DETECT, gm, size = 0;
     int sw_x1[4], sw_y1[4], sw_x2[4], sw_y2[4], sw_ymid[4];
     int x1[4], y1[4][3], x2[4], y2[4];
 
     //initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
-    initwindow(640, 480 + 30, "First Sample");
-    //setbkcolor(BLUE);
+    initwindow(640, 480 + 30, "Motion simulator (by Ricardo)");
 
     pos p[4] = {0};
 
@@ -383,7 +382,7 @@ void* plot_chart(void *arg)
         //printf("%d, %d, %x \n", sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1]);
         putimage(sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1], XOR_PUT);
 
-        y2[SW1] = sw_ymid[SW1] - (sd->cv.vx * (maxy / 4));
+        y2[SW1] = sw_ymid[SW1] - (sd->pv.vx * (maxy / 4));
 
         lineto(x2[SW1], y2[SW1]);
 
@@ -406,7 +405,7 @@ void* plot_chart(void *arg)
         //printf("%d, %d, %x \n", sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2]);
         putimage(sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2], XOR_PUT);
 
-        y2[SW2] = sw_ymid[SW2] - (sd->cv.vy * (maxy / 4));
+        y2[SW2] = sw_ymid[SW2] - (sd->pv.vy * (maxy / 4));
 
         lineto(x2[SW2], y2[SW2]);
 
@@ -429,7 +428,7 @@ void* plot_chart(void *arg)
         //printf("%d, %d, %x \n", sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3]);
         putimage(sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3], XOR_PUT);
 
-        y2[SW3] = sw_ymid[SW3] - (sd->cv.w0 * (maxy / 4));
+        y2[SW3] = sw_ymid[SW3] - (sd->pv.w0 * (maxy / 4));
 
         lineto(x2[SW3], y2[SW3]);
 
@@ -471,17 +470,30 @@ void* plot_chart(void *arg)
         setcolor(RED);
         lineto(maxx / 2, maxy);
 
-        settextstyle(8, HORIZ_DIR, 3);
-        outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, (char *)"vx");
-        outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, (char *)"vy");
-        outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, (char *)"w0");
+        setcolor(RED);
+        settextstyle(10, HORIZ_DIR, 3);
+        sprintf(text, "vx = %8.4f", sd->sv.vx);
+        outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, text);
+        sprintf(text, "vy = %8.4f", sd->sv.vy);
+        outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, text);
+        sprintf(text, "w0 = %8.4f", sd->sv.w0);
+        outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, text);
+
+        setcolor(YELLOW);
+        settextstyle(10, HORIZ_DIR, 1);
+        sprintf(text, "%8.2f", sd->pv.vx);
+        outtextxy(sw_x2[SW1] - 100, y2[SW1] - 30, text);
+        sprintf(text, "%8.2f", sd->pv.vy);
+        outtextxy(sw_x2[SW2] - 100, y2[SW2] - 30, text);
+        sprintf(text, "%8.2f", sd->pv.w0);
+        outtextxy(sw_x2[SW3] - 100, y2[SW3] - 30, text);
 
         /* status bar */
         setfillstyle(SOLID_FILL, RED);
         bar(0, maxy + 1, maxx + 1, maxy + 30);
         #endif
 
-        delay(500); // 10ms, 100Hz
+        delay(100); // 10ms, 100Hz
     }
 }
 
