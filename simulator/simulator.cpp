@@ -233,7 +233,9 @@ typedef struct _pos
 #define SW1 0
 #define SW2 1
 #define SW3 2
-#define SW4 3
+//#define SW4 3
+
+enum{SV, CV, PV};
 
 void* plot_chart(void *arg)
 {
@@ -244,8 +246,8 @@ void* plot_chart(void *arg)
     int sw_x1[4], sw_y1[4], sw_x2[4], sw_y2[4], sw_ymid[4];
     int x1[4], y1[4], x2[4], y2[4];
 
-    initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
-    //initwindow(640, 480, "First Sample");
+    //initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
+    initwindow(640, 480, "First Sample");
     //setbkcolor(BLUE);
 
     pos p[4] = {0};
@@ -257,14 +259,13 @@ void* plot_chart(void *arg)
 
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
 
-    printf("%d %d %d %d \n", SW1, SW2, SW3, SW4);
-
-
     delay(2000);
 
     /* plot sub windows */
 
     /* sub window 1 */
+    #ifdef SW1
+    printf("[INFO] initializing sub window 1... \n");
     sw_x1[SW1] = 1;
     sw_y1[SW1] = 0;
     sw_x2[SW1] = maxx / 2;
@@ -280,9 +281,11 @@ void* plot_chart(void *arg)
 
     bitimage[SW1] = malloc(size);
     getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
+    #endif
 
     /* sub window 2 */
-
+    #ifdef SW2
+    printf("[INFO] initializing sub window 2... \n");
     sw_x1[SW2] = maxx / 2 + 1;
     sw_y1[SW2] = 0;
     sw_x2[SW2] = maxx;
@@ -298,8 +301,11 @@ void* plot_chart(void *arg)
 
     bitimage[SW2] = malloc(size);
     getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
+    #endif
 
     /* sub window 3 */
+    #ifdef SW3
+    printf("[INFO] initializing sub window 3... \n");
     sw_x1[SW3] = 1;
     sw_y1[SW3] = maxy / 2;
     sw_x2[SW3] = maxx / 2;
@@ -315,83 +321,109 @@ void* plot_chart(void *arg)
 
     bitimage[SW3] = malloc(size);
     getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
+    #endif
 
     /* sub window 4 */
+    #ifdef SW4
+    printf("[INFO] initializing sub window 4... \n");
+    #endif
 
     /* update all sub windows */
     for(;;)
     {
-        clearviewport();
+        //clearviewport();
+        cleardevice();
 
         /*
              update sub window 1, vx
          */
+        #ifdef SW1
+        //printf("[INFO] updating sub window 1... \n");
         setcolor(WHITE);
 
         moveto(x1[SW1], y1[SW1]);
 
-        putimage(sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1], COPY_PUT);
+        //printf("[INFO] putimage... \n");
+        //printf("%d, %d, %x \n", sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1]);
+        putimage(sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1], XOR_PUT);
 
-        y2[SW1] = sw_ymid[SW1] - 50;
+        y2[SW1] = sw_ymid[SW1] - (sd->cv.vx * (maxy / 4));
 
         lineto(x2[SW1], y2[SW1]);
 
         y1[SW1] = y2[SW1];
 
+        //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
+        #endif
 
         /*
              update sub window 2, vy
          */
-        #if 1
+        #ifdef SW2
+        //printf("[INFO] updating sub window 2... \n");
         setcolor(WHITE);
 
         moveto(x1[SW2], y1[SW2]);
 
-        putimage(sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2], COPY_PUT);
+        //printf("[INFO] putimage... \n");
+        //printf("%d, %d, %x \n", sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2]);
+        putimage(sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2], XOR_PUT);
 
-        y2[SW2] = sw_ymid[SW2] - 50;
+        y2[SW2] = sw_ymid[SW2] - (sd->cv.vy * (maxy / 4));
 
         lineto(x2[SW2], y2[SW2]);
 
         y1[SW2] = y2[SW2];
 
+        //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
         #endif
 
         /*
              update sub window 3, w0
          */
-        #if 1
+        #ifdef SW3
+        //printf("[INFO] updating sub window 3... \n");
         setcolor(WHITE);
 
         moveto(x1[SW3], y1[SW3]);
 
-        putimage(sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3], COPY_PUT);
+        //printf("[INFO] putimage... \n");
+        //printf("%d, %d, %x \n", sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3]);
+        putimage(sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3], XOR_PUT);
 
-        y2[SW3] = sw_ymid[SW3] - 50;
+        y2[SW3] = sw_ymid[SW3] - (sd->cv.w0 * (maxy / 4));
 
         lineto(x2[SW3], y2[SW3]);
 
         y1[SW3] = y2[SW3];
 
+        //printf("[INFO] getimage... \n");
         getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
         #endif
 
         /*
              update sub window 4, vector
          */
+        #ifdef SW4
+        //printf("[INFO] updating sub window 4... \n");
+        #endif
 
+
+        /*
+             draw all axes
+         */
         #if 1
         /* draw axis x */
-        moveto(0, maxy / 4);
+        moveto(0, maxy / 4 + 1);
         setcolor(GREEN);
-        lineto(maxx, maxy / 4);
+        lineto(maxx, maxy / 4 + 1);
 
         /* draw axis y */
-        moveto(0, (maxy / 4) * 3 + 2);
+        moveto(0, (maxy / 4) * 3 + 1);
         setcolor(GREEN);
-        lineto(maxx / 2, (maxy / 4) * 3 + 2);
+        lineto(maxx / 2, (maxy / 4) * 3 + 1);
 
         /* split window */
         moveto(0, maxy / 2);
@@ -401,9 +433,14 @@ void* plot_chart(void *arg)
         moveto(maxx / 2, 0);
         setcolor(RED);
         lineto(maxx / 2, maxy);
+
+        settextstyle(4, HORIZ_DIR, 3);
+        outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, (char *)"vx");
+        outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, (char *)"vy");
+        outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, (char *)"w0");
         #endif
 
-        delay(sd->loop_time - 20);
+        delay(200); // 10ms, 100Hz
     }
 }
 
