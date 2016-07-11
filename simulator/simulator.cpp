@@ -276,8 +276,7 @@ void* plot_chart(void *arg)
     int sw_x1[4], sw_y1[4], sw_x2[4], sw_y2[4], sw_ymid[4];
     int x1[4], y1[4][3], x2[4], y2[4];
 
-    //initgraph(&gd, &gm, (char *)"C:\\TC\\BGI");
-    initwindow(640, 480 + 30, "Motion simulator (by Ricardo)");
+    initwindow(640, 480 + 30, "Motion Simulator V1.0 (tsao.ricardo@iac.com.tw)", true, false);
 
     pos p[4] = {0};
 
@@ -459,7 +458,7 @@ void* plot_chart(void *arg)
         lineto(maxx / 2, maxy);
 
         setcolor(WHITE);
-        settextstyle(10, HORIZ_DIR, 1);
+        settextstyle(BOLD_FONT, HORIZ_DIR, 1);
         sprintf(text, "vx = %8.4f (m/s)", sd->sv.vx);
         outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, text);
         sprintf(text, "vy = %8.4f (m/s)", sd->sv.vy);
@@ -468,7 +467,7 @@ void* plot_chart(void *arg)
         outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, text);
 
         setcolor(YELLOW);
-        settextstyle(10, HORIZ_DIR, 1);
+        settextstyle(BOLD_FONT, HORIZ_DIR, 1);
         sprintf(text, "%8.2f", sd->pv.vx);
         outtextxy(sw_x2[SW1] - 100, y2[SW1] - 30, text);
         sprintf(text, "%8.2f", sd->pv.vy);
