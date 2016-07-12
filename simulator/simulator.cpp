@@ -376,15 +376,12 @@ void* plot_chart(void *arg)
         setcolor(WHITE);
 
         moveto(x1[SW1], y1[SW1][PV]);
-
         putimage(sw_x1[SW1] - 1, sw_y1[SW1], bitimage[SW1], XOR_PUT);
 
         y2[SW1] = sw_ymid[SW1] - (sd->pv.vx * (maxy / 4));
-
         lineto(x2[SW1], y2[SW1]);
 
         y1[SW1][PV] = y2[SW1];
-
         getimage(sw_x1[SW1], sw_y1[SW1], sw_x2[SW1], sw_y2[SW1], bitimage[SW1]);
         #endif
 
@@ -393,17 +390,13 @@ void* plot_chart(void *arg)
          */
         #ifdef SW2
         setcolor(WHITE);
-
         moveto(x1[SW2], y1[SW2][PV]);
-
         putimage(sw_x1[SW2] - 1, sw_y1[SW2], bitimage[SW2], XOR_PUT);
 
         y2[SW2] = sw_ymid[SW2] - (sd->pv.vy * (maxy / 4));
-
         lineto(x2[SW2], y2[SW2]);
 
         y1[SW2][PV] = y2[SW2];
-
         getimage(sw_x1[SW2], sw_y1[SW2], sw_x2[SW2], sw_y2[SW2], bitimage[SW2]);
         #endif
 
@@ -412,17 +405,13 @@ void* plot_chart(void *arg)
          */
         #ifdef SW3
         setcolor(WHITE);
-
         moveto(x1[SW3], y1[SW3][PV]);
-
         putimage(sw_x1[SW3] - 1, sw_y1[SW3], bitimage[SW3], XOR_PUT);
 
         y2[SW3] = sw_ymid[SW3] - (sd->pv.w0 * (maxy / 4));
-
         lineto(x2[SW3], y2[SW3]);
 
         y1[SW3][PV] = y2[SW3];
-
         getimage(sw_x1[SW3], sw_y1[SW3], sw_x2[SW3], sw_y2[SW3], bitimage[SW3]);
         #endif
 
@@ -433,10 +422,7 @@ void* plot_chart(void *arg)
         //printf("[INFO] updating sub window 4... \n");
         #endif
 
-
-        /*
-             draw all axes
-         */
+        setlinestyle(SOLID_LINE, 0xFFFF, 2);
         #if 1
         /* draw axis x */
         moveto(0, maxy / 4 + 1);
@@ -449,6 +435,7 @@ void* plot_chart(void *arg)
         lineto(maxx / 2, (maxy / 4) * 3 + 1);
 
         /* split window */
+        setlinestyle(SOLID_LINE, 0xFFFF, 6);
         moveto(0, maxy / 2);
         setcolor(RED);
         lineto(maxx, maxy / 2);
@@ -458,15 +445,17 @@ void* plot_chart(void *arg)
         setcolor(RED);
         lineto(maxx / 2, maxy);
 
+        /* add text (SV) */
         setcolor(WHITE);
         settextstyle(BOLD_FONT, HORIZ_DIR, 1);
         sprintf(text, "vx = %5.2f (m/s)", sd->sv.vx);
-        outtextxy(sw_x1[SW1] + 3, sw_y1[SW1] + 3, text);
+        outtextxy(sw_x1[SW1] + 8, sw_y1[SW1] + 6, text);
         sprintf(text, "vy = %5.2f (m/s)", sd->sv.vy);
-        outtextxy(sw_x1[SW2] + 3, sw_y1[SW2] + 3, text);
+        outtextxy(sw_x1[SW2] + 8, sw_y1[SW2] + 6, text);
         sprintf(text, "w0 = %5.2f (rad/s)", sd->sv.w0);
-        outtextxy(sw_x1[SW3] + 3, sw_y1[SW3] + 3, text);
+        outtextxy(sw_x1[SW3] + 8, sw_y1[SW3] + 6, text);
 
+        /* add text (PV) */
         setcolor(YELLOW);
         settextstyle(BOLD_FONT, HORIZ_DIR, 1);
         sprintf(text, "%5.2f", sd->pv.vx);
@@ -476,7 +465,7 @@ void* plot_chart(void *arg)
         sprintf(text, "%5.2f", sd->pv.w0);
         outtextxy(sw_x2[SW3] - 60, y2[SW3] - 30, text);
 
-        /* status bar */
+        /* add status bar */
         setfillstyle(SOLID_FILL, RED);
         bar(0, maxy + 1, maxx + 1, maxy + 30);
         setcolor(WHITE);
