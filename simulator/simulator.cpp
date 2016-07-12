@@ -367,7 +367,7 @@ void* plot_chart(void *arg)
     {
         clearviewport();
         //cleardevice();
-        setlinestyle(SOLID_LINE, 0xFFFF, 2);
+        setlinestyle(SOLID_LINE, 0xFFFF, 1);
 
         /*
              update sub window 1, vx
@@ -435,7 +435,7 @@ void* plot_chart(void *arg)
         lineto(maxx / 2, (maxy / 4) * 3 + 1);
 
         /* split window */
-        setlinestyle(SOLID_LINE, 0xFFFF, 6);
+        setlinestyle(SOLID_LINE, 0xFFFF, 2);
         moveto(0, maxy / 2);
         setcolor(RED);
         lineto(maxx, maxy / 2);

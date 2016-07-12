@@ -6,8 +6,8 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
-#ifdef __cplusplus 
-    extern "C" { 
+#ifdef __cplusplus
+    extern "C" {
 #endif
 
 #pragma once
@@ -20,6 +20,7 @@
 #define DEFAULT_L2                      ((480.0f/2)/1000.0f)  // m, high/2
 #define DEFAULT_R                       ((101.6f/2)/1000.0f)  // m, Wheel radius
 #define DEFAULT_WET                     0.6f                  // Kg, weight
+#define DEFAULT_MAX_V                   0.6f                  // m/s, velocity
 #define DEFAULT_MAX_VX                  0.6f                  // m/s, velocity
 #define DEFAULT_MAX_VY                  0.6f                  // m/s, velocity
 #define DEFAULT_MAX_W0                  0.6f                  // rad/s, rotation rate
@@ -61,6 +62,6 @@
 
 #endif
 
-#ifdef __cplusplus 
-    } 
+#ifdef __cplusplus
+    }
 #endif
