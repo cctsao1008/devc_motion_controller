@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
         sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
         sd->sys_elaps = t_elap / 1000;
 
-        mdelay(ticks + (sd->loop_time));
+        mdelay(ticks + DEFAULT_LOOP_TIME);
     }
 
     return 0;
@@ -476,7 +476,7 @@ void* plot_chart(void *arg)
         #endif
 
         swapbuffers();
-        delay(sd->loop_time + 100); // nyquist sample theorem
+        delay(DEFAULT_LOOP_TIME / 2); // nyquist sample theorem
     }
 }
 
