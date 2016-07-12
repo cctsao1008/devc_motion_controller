@@ -486,7 +486,8 @@ void* plot_chart(void *arg)
         setbkcolor(BLACK);
         #endif
 
-        delay(sd->loop_time / 2); // nyquist sample theorem
+        swapbuffers();
+        delay(sd->loop_time + 100); // nyquist sample theorem
     }
 }
 
