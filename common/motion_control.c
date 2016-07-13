@@ -215,6 +215,7 @@ bool inverse_kinematics(system_data* sd)
     float vx = sd->cv.vx;
     float vy = sd->cv.vy;
     float w0 = sd->cv.w0;
+    float w1, w2, w3, w4;
 
     float mat[4][4] = {0};
 
@@ -224,12 +225,29 @@ bool inverse_kinematics(system_data* sd)
         return false;
     }
 
+    if( R <= 0)
+    {
+        MSG(sd->log, "[ERROR] inverse_kinematics, failed(R <= 0)! \n");
+        return false;
+    }
+
     memcpy(mat, sd->mat_inverse, sizeof(mat));
 
-    sd->mot.out.w1 = (1.0f / R) * (mat[0][0] * vx + mat[0][1] * vy + mat[0][2] * w0);
-    sd->mot.out.w2 = (1.0f / R) * (mat[1][0] * vx + mat[1][1] * vy + mat[1][2] * w0);
-    sd->mot.out.w3 = (1.0f / R) * (mat[2][0] * vx + mat[2][1] * vy + mat[2][2] * w0);
-    sd->mot.out.w4 = (1.0f / R) * (mat[3][0] * vx + mat[3][1] * vy + mat[3][2] * w0);
+    w1 = (1.0f / R) * (mat[0][0] * vx + mat[0][1] * vy + mat[0][2] * w0);
+    w2 = (1.0f / R) * (mat[1][0] * vx + mat[1][1] * vy + mat[1][2] * w0);
+    w3 = (1.0f / R) * (mat[2][0] * vx + mat[2][1] * vy + mat[2][2] * w0);
+    w4 = (1.0f / R) * (mat[3][0] * vx + mat[3][1] * vy + mat[3][2] * w0);
+
+    /* signed zero to be zero */
+    if (w1 == 0) w1 = 0;
+    if (w2 == 0) w2 = 0;
+    if (w3 == 0) w3 = 0;
+    if (w4 == 0) w4 = 0;
+
+    sd->mot.out.w1 = w1;
+    sd->mot.out.w2 = w2;
+    sd->mot.out.w3 = w3;
+    sd->mot.out.w4 = w4;
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] inverse_kinematics : \n");
@@ -250,6 +268,7 @@ bool forward_kinematics(system_data* sd)
     float w2 = sd->mot.in.w2;
     float w3 = sd->mot.in.w3;
     float w4 = sd->mot.in.w4;
+    float vx, vy, w0;
 
     float mat[4][4] = {0};
 
@@ -261,9 +280,18 @@ bool forward_kinematics(system_data* sd)
 
     memcpy(mat, sd->mat_forward, sizeof(mat));
 
-    sd->pv.vx = R * (mat[0][0] * w1 + mat[0][1] * w2 + mat[0][2] * w3 + mat[0][3] * w4);
-    sd->pv.vy = R * (mat[1][0] * w1 + mat[1][1] * w2 + mat[1][2] * w3 + mat[1][3] * w4);
-    sd->pv.w0 = R * (mat[2][0] * w1 + mat[2][1] * w2 + mat[2][2] * w3 + mat[2][3] * w4);
+    vx = R * (mat[0][0] * w1 + mat[0][1] * w2 + mat[0][2] * w3 + mat[0][3] * w4);
+    vy = R * (mat[1][0] * w1 + mat[1][1] * w2 + mat[1][2] * w3 + mat[1][3] * w4);
+    w0 = R * (mat[2][0] * w1 + mat[2][1] * w2 + mat[2][2] * w3 + mat[2][3] * w4);
+
+    if (vx == 0) vx = 0;
+    if (vy == 0) vy = 0;
+    if (w0 == 0) w0 = 0;
+
+    /* signed zero to be zero */
+    sd->pv.vx = vx;
+    sd->pv.vy = vy;
+    sd->pv.w0 = w0;
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] forward_kinematics : \n");
