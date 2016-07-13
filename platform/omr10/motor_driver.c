@@ -25,6 +25,9 @@
 #define STC1 0xEB // start code 1
 #define STC2 0x90 // start code 2
 
+/* linear regression */
+int lr(double *data, int rows, double *a, double *b, double *sp);
+
 static bool initialized = false;
 
 /* Add "\\\\.\\" for COM > 10 */
@@ -336,5 +339,43 @@ bool motor_driver_update(system_data* sd)
     #endif
 
     return true;
+}
+
+/* linear regression */
+int lr(double *data, int rows, double *a, double *b, double *sp)
+{
+    int m;
+    double *p, lxx = 0.0, lxy = 0.0, xa = 0.0, ya = 0.0;
+    if (data == 0 || a == 0 || b == 0 || rows < 1)
+        return -1;
+    for (p = data, m = 0; m < rows; m ++)
+    {
+        xa += *p ++;
+        ya += *p ++;
+    }
+    xa /= rows;
+    ya /= rows;
+    for (p = data, m = 0; m < rows; m ++, p += 2)
+    {
+        lxx += ((*p - xa) * (*p - xa));
+        lxy += ((*p - xa) * (*(p + 1) - ya)); // lxy = sum((X - Xa)(Y - Ya))
+    }
+
+    *b = lxy / lxx; // b = lxy / lxx
+    *a = ya - *b * xa; // a = ya - b * xa
+    if (sp == 0)
+        return 0;
+
+    sp[0] = sp[1] = 0.0;
+    for (p = data, m = 0; m < rows; m ++, p ++)
+    {
+        lxy = *a + *b * *p ++;
+        sp[0] += ((lxy - ya) * (lxy - ya));
+        sp[1] += ((*p - lxy) * (*p - lxy));
+    }
+
+    sp[2] = sp[0];
+    sp[3] = sp[1] / (rows - 2);
+    return 0;
 }
 
