@@ -284,11 +284,11 @@ bool forward_kinematics(system_data* sd)
     vy = R * (mat[1][0] * w1 + mat[1][1] * w2 + mat[1][2] * w3 + mat[1][3] * w4);
     w0 = R * (mat[2][0] * w1 + mat[2][1] * w2 + mat[2][2] * w3 + mat[2][3] * w4);
 
+    /* signed zero to be zero */
     if (vx == 0) vx = 0;
     if (vy == 0) vy = 0;
     if (w0 == 0) w0 = 0;
 
-    /* signed zero to be zero */
     sd->pv.vx = vx;
     sd->pv.vy = vy;
     sd->pv.w0 = w0;
