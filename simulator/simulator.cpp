@@ -23,7 +23,7 @@
 #include "..\common\system.h"
 #include "..\platform\platform.h"
 
-#define DEFAULT_LOOP_TIME           120
+#define DEFAULT_LOOP_TIME           80
 //#define DEFAULT_LOOP_TIME       500
 
 #define BILLION                     1000000000L
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 
     plot_init(sd);
 
-    mdelay(clock() + 3000);
+    //mdelay(clock() + 3000);
 
     for(;;)
     {
@@ -422,8 +422,8 @@ void* plot_chart(void *arg)
         //printf("[INFO] updating sub window 4... \n");
         #endif
 
-        setlinestyle(SOLID_LINE, 0xFFFF, 2);
         #if 1
+        setlinestyle(SOLID_LINE, 0xFFFF, 2);
         /* draw axis x */
         moveto(0, maxy / 4 + 1);
         setcolor(GREEN);
@@ -470,7 +470,7 @@ void* plot_chart(void *arg)
         bar(0, maxy + 1, maxx + 1, maxy + 30);
         setcolor(WHITE);
         setbkcolor(RED);
-        sprintf(text, " time elapsed %8.2f sec", sd->sys_elaps);
+        sprintf(text, " time %7.2f sec | perf %5.2f%% | loop %4d ms" , sd->sys_elaps, sd->sys_usage, sd->loop_time);
         outtextxy(0, maxy + 6, text);
         setbkcolor(BLACK);
         #endif
