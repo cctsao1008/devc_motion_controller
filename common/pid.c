@@ -101,8 +101,6 @@ bool pid_control_update(system_data* sd)
     sd->cv.vy += p_out[1] + i_out[1] + d_out[1];
     sd->cv.w0 += p_out[2] + i_out[2] + d_out[2];
 
-    //soft_brake(sd);
-
     #if DEBUG
     MSG(sd->log, "[DEBUG] pid_control_update : \n");
     MSG(sd->log, "vx, p_out, i_out, d_out = \n");
