@@ -46,6 +46,7 @@ bool motion_control_init(system_data* sd)
         return false;
 
     pid_control_init(sd);
+    //fuzzy_control_init(sd);
 
     initialized = true;
 
@@ -74,6 +75,7 @@ bool motion_control_update(system_data* sd)
 
     /* calculating output signals, vx, vy, w0 */
     pid_control_update(sd);
+    //fuzzy_control_update(sd);
 
     /* calculating output signals, w1, w2, w3, w4 */
     inverse_kinematics(sd);
