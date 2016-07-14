@@ -28,9 +28,9 @@
 
 #define BILLION                     1000000000L
 
-#define EN_LOGGER                   false
-#define EN_INFO                     true
-#define EN_CHART                    true
+#define EN_INFO_F                   false
+#define EN_INFO_T                   true
+#define EN_INFO_C                   true
 
 using namespace std;
 
@@ -76,15 +76,13 @@ char banner[] = {
 };
 
 void print_banner(char *data);
-void data_logger(FILE *fp, system_data *sd);
 
-/* plot chart */
-void plot_init(system_data *sd);
-void* plot_chart(void*);
+/* print info */
+void* print_info_c(void *arg); // chart
+void* print_info_t(void *arg); // text
+void* print_info_f(FILE *fp, system_data *sd); // file
 
-void* print_info(void *arg);
-
-/* run this program using the console pauser or add your own getch, system("pause") or input loop */
+pthread_mutex_t mutex[2];
 
 void mdelay(unsigned int ticks)
 {
@@ -100,6 +98,8 @@ int main(int argc, char *argv[])
     uint64_t t_diff;
     clock_t ticks;
     FILE *pLog;
+
+    pthread_t tid[2];
 
     /* SDL2 test code */
     #if 0
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
 
-    #if EN_LOGGER
+    #if EN_INFO_F
     sprintf(log_name, "%d%02d%02d%02d%02d%02d.csv", tm.tm_year + 1900,
                                                     tm.tm_mon + 1,
                                                     tm.tm_mday,
@@ -199,12 +199,22 @@ int main(int argc, char *argv[])
 
     commander_init(sd);
 
-    plot_init(sd);
+    pthread_mutex_init(&mutex[0], NULL);
+    pthread_mutex_init(&mutex[1], NULL);
+
+    #if EN_INFO_T
+    pthread_create(&tid[0], NULL, &print_info_t, (void *)sd);
+    #endif
+
+    #if EN_INFO_C
+    pthread_create(&tid[1], NULL, &print_info_c, (void *)sd);
+    #endif
 
     //mdelay(clock() + 3000);
 
     for(;;)
     {
+        ticks = clock();
 
         /* measure monotonic time */
         clock_gettime(CLOCK_MONOTONIC, &start); /* mark start time */
@@ -212,10 +222,8 @@ int main(int argc, char *argv[])
         motion_control_update(sd);
         motor_control_update(sd);
 
-        ticks = clock();
-
-        #if EN_LOGGER
-        data_logger(pLog, sd);
+        #if EN_INFO_F
+        print_info_f(pLog, sd);
         #endif
 
         if((clock() - ticks) > (sd->loop_time))
@@ -228,6 +236,9 @@ int main(int argc, char *argv[])
 
         sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
         sd->sys_elaps = t_elap / 1000;
+
+        pthread_mutex_unlock(&mutex[0]);
+        pthread_mutex_unlock(&mutex[1]);
 
         mdelay(ticks + DEFAULT_LOOP_TIME);
     }
@@ -266,7 +277,7 @@ typedef struct _pos
 
 enum{SV, CV, PV};
 
-void* plot_chart(void *arg)
+void* print_info_c(void *arg)
 {
     system_data *sd = (system_data *) arg;
     void *bitimage[4];
@@ -365,6 +376,8 @@ void* plot_chart(void *arg)
     /* update all sub windows */
     for(;;)
     {
+        pthread_mutex_lock(&mutex[0]);
+
         clearviewport();
         //cleardevice();
         setlinestyle(SOLID_LINE, 0xFFFF, 1);
@@ -476,45 +489,12 @@ void* plot_chart(void *arg)
         #endif
 
         swapbuffers();
-        delay(DEFAULT_LOOP_TIME / 2); // nyquist sample theorem
-        delay(150);
+        //delay(DEFAULT_LOOP_TIME / 2); // nyquist sample theorem
+        delay(200);
     }
 }
 
-void plot_init(system_data *sd)
-{
-    /* test winbgim */
-    pthread_t tid[2];
-
-    #if EN_INFO
-    pthread_create(&tid[0], NULL, &print_info, (void *)sd);
-    #endif
-
-    #if EN_CHART
-    pthread_create(&tid[1], NULL, &plot_chart, (void *)sd);
-    #endif
-
-}
-
-void data_logger(FILE *fp, system_data *sd)
-{
-    /* data logger */
-    fprintf(fp, "%10ld, ",
-        sd->t_curr);
-
-    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
-        sd->sv.vx, sd->cv.vx, sd->pv.vx);
-
-    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
-        sd->sv.vy, sd->cv.vy, sd->pv.vy);
-
-    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
-        sd->sv.w0, sd->cv.w0, sd->pv.w0);
-
-    fprintf(fp, "\n");
-}
-
-void* print_info(void *arg)
+void* print_info_t(void *arg)
 {
     system_data *sd = (system_data *) arg;
 
@@ -522,7 +502,8 @@ void* print_info(void *arg)
 
     for(;;)
     {
-        #if 1
+        //pthread_mutex_lock(&mutex[1]);
+
         /* display system information */
         system("cls");
 
@@ -546,12 +527,12 @@ void* print_info(void *arg)
         printf(" %9.4f %9.4f %9.4f \n",
             sd->pv.w0, sd->pv.w0, sd->pv.w0);
 
-        printf(" [w/o] m1, m2, m3, m4 (r/min)   : ");
+        printf(" [w/o] m1, m2, m3, m4 (rad/s)   : ");
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
             sd->mot.out.w1, sd->mot.out.w2,
             sd->mot.out.w3, sd->mot.out.w4);
 
-        printf(" [w/i] m1, m2, m3, m4 (r/min)   : ");
+        printf(" [w/i] m1, m2, m3, m4 (rad/s)   : ");
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
             sd->mot.in.w1, sd->mot.in.w2,
             sd->mot.in.w3, sd->mot.in.w4);
@@ -572,9 +553,26 @@ void* print_info(void *arg)
             sd->mot.out.pwm3, sd->mot.out.pwm4);
 
         printf("\n\n");
-        #endif
 
-        usleep(500000); // 50ms
+        sleep(1);
     }
+}
+
+void* print_info_f(FILE *fp, system_data *sd)
+{
+    /* data logger */
+    fprintf(fp, "%10ld, ",
+        sd->t_curr);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.vx, sd->cv.vx, sd->pv.vx);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.vy, sd->cv.vy, sd->pv.vy);
+
+    fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
+        sd->sv.w0, sd->cv.w0, sd->pv.w0);
+
+    fprintf(fp, "\n");
 }
 
