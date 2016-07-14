@@ -91,50 +91,63 @@ void mdelay(unsigned int ticks)
 
 int main(int argc, char *argv[])
 {
-    char log[128] = {0};
+    /* time, clock... */
     struct timespec start, end;
+    time_t t = time(NULL);
+    struct tm tm= *localtime(&t);
+    float t_elap = 0.0f;
+    uint64_t t_diff = 0;
+    clock_t ticks = 0;
 
-    float t_elap;
-    uint64_t t_diff;
-    clock_t ticks;
-    FILE *pLog;
+    /* file... */
+    char log[128] = {0};
+    char log_name[64];
+    FILE *pLog = NULL;
 
-    pthread_t tid[2];
+    /* thread... */
+    pthread_t tid[2] = {0};
+
+    /* system... */
+    system_data *sd;
+
+    memset(&start, 0, sizeof(timespec));
+    memset(&end, 0, sizeof(timespec));
+    memset(sd, 0, sizeof(system_data));
 
     /* SDL2 test code */
-    #if 0
+    #if 0   // REF.
     const int SCREEN_WIDTH = 640;
     const int SCREEN_HEIGHT = 480;
-    SDL_Window* window = NULL;
-    SDL_Surface* screenSurface = NULL;
+    SDL_Window *window = NULL;
+    SDL_Surface *screenSurface = NULL;
 
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ){
-        printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+    if(SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     }
-    else{
-        window = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        if( window == NULL ){
-            printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+    else
+    {
+        window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+        if(window == NULL)
+        {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         }
-        else{
-            screenSurface = SDL_GetWindowSurface( window );
-            SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
-            SDL_UpdateWindowSurface( window );
-            SDL_Delay( 2000 );
+        else
+        {
+            screenSurface = SDL_GetWindowSurface(window);
+            SDL_FillRect(screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF));
+            SDL_UpdateWindowSurface(window);
+            SDL_Delay(2000);
         }
     }
 
-    SDL_DestroyWindow( window );
+    SDL_DestroyWindow(window);
     SDL_Quit();
     exit(0);
     #endif
 
     /* use date & time as file name. */
-    char log_name[64];
-
-    time_t t = time(NULL);
-    struct tm tm= *localtime(&t);
-
     #if EN_INFO_F
     sprintf(log_name, "%d%02d%02d%02d%02d%02d.csv", tm.tm_year + 1900,
                                                     tm.tm_mon + 1,
@@ -168,14 +181,11 @@ int main(int argc, char *argv[])
     }
     #endif
 
-    /* setting value, control value, process value */
-    system_data* sd;
-
-    //srand((unsigned) time(NULL) + getpid());
+    #if 0  // REF.
+    srand((unsigned) time(NULL) + getpid());
+    #endif
 
     print_banner(banner);
-
-    //while(1);
 
     #if 0  // REF.
     int t1, t2, ts;
@@ -210,8 +220,6 @@ int main(int argc, char *argv[])
     pthread_create(&tid[1], NULL, &print_info_c, (void *)sd);
     #endif
 
-    //mdelay(clock() + 3000);
-
     for(;;)
     {
         ticks = clock();
@@ -232,10 +240,10 @@ int main(int argc, char *argv[])
         clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
 
         t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
-        t_elap += sd->t_delta;
+        t_elap += (float)sd->t_delta;
 
         sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
-        sd->sys_elaps = t_elap / 1000;
+        sd->sys_elaps = t_elap / 1000.0f;
 
         pthread_mutex_unlock(&mutex[0]);
         pthread_mutex_unlock(&mutex[1]);
@@ -297,8 +305,6 @@ void* print_info_c(void *arg)
     maxx = getmaxx(); maxy = getmaxy() - 30;
 
     printf("maxx = %d, maxy = %d \n", maxx, maxy);
-
-    delay(2000);
 
     /* plot sub windows */
 
