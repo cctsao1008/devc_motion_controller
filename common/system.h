@@ -102,6 +102,14 @@ bool motor_control_update(system_data* sd);
 bool motor_driver_init(system_data* sd);
 bool motor_driver_update(system_data* sd);
 
+/* pid control */
+bool pid_control_init(system_data* sd);
+bool pid_control_update(system_data* sd);
+
+/* fuzzy control */
+bool fuzzy_control_init(system_data* sd);
+bool fuzzy_control_update(system_data* sd);
+
 #ifdef __cplusplus
     }
 #endif
