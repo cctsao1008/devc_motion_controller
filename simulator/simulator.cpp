@@ -511,7 +511,7 @@ void* print_info_t(void *arg)
         printf(" Motion Simulator running.. \n");
         printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", sd->sys_usage, sd->sys_elaps);
 
-        printf(" [loop time] ms                 : ");
+        printf(" [SYSTEM] loop time (ms)        : ");
         printf(" %9d \n",
             sd->t_delta);
 
@@ -526,6 +526,11 @@ void* print_info_t(void *arg)
         printf(" [PV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
             sd->pv.w0, sd->pv.w0, sd->pv.w0);
+
+        printf(" [fr] m1, m2, m3, m4 (f/r)      : ");
+        printf(" %9d %9d %9d %9d \n",
+            sd->mot.out.fr1, sd->mot.out.fr2,
+            sd->mot.out.fr3, sd->mot.out.fr4);
 
         printf(" [w/o] m1, m2, m3, m4 (rad/s)   : ");
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
