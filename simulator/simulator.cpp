@@ -477,6 +477,7 @@ void* plot_chart(void *arg)
 
         swapbuffers();
         delay(DEFAULT_LOOP_TIME / 2); // nyquist sample theorem
+        delay(150);
     }
 }
 
