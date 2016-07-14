@@ -29,9 +29,6 @@ bool kinematics_init(system_data* sd);
 bool forward_kinematics(system_data* sd);
 bool inverse_kinematics(system_data* sd);
 
-bool soft_brake(system_data* sd);
-
-
 bool motion_control_init(system_data* sd)
 {
     MSG(sd->log, "%s", "[INFO] motion_control_init... \n");
