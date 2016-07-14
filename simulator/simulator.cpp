@@ -29,7 +29,7 @@
 #define BILLION                     1000000000L
 
 #define EN_LOGGER                   false
-#define EN_INFO                     false
+#define EN_INFO                     true
 #define EN_CHART                    true
 
 using namespace std;
@@ -533,32 +533,42 @@ void* print_info(void *arg)
         printf(" %9d \n",
             sd->t_delta);
 
-        printf(" [vx] sv, cv, pv (m/s)          : ");
+        printf(" [SV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
-            sd->sv.vx, sd->cv.vx, sd->pv.vx);
+            sd->sv.vx, sd->sv.vx, sd->sv.vx);
 
-        printf(" [vy] sv, cv, pv (m/s)          : ");
+        printf(" [CV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
-            sd->sv.vy, sd->cv.vy, sd->pv.vy);
+            sd->cv.vy, sd->cv.vy, sd->cv.vy);
 
-        printf(" [w0] sv, cv, pv (rad/s)        : ");
+        printf(" [PV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
-            sd->sv.w0, sd->cv.w0, sd->pv.w0);
+            sd->pv.w0, sd->pv.w0, sd->pv.w0);
+
+        printf(" [w/o] m1, m2, m3, m4 (r/min)   : ");
+        printf(" %9.4f %9.4f %9.4f %9.4f \n",
+            sd->mot.out.w1, sd->mot.out.w2,
+            sd->mot.out.w3, sd->mot.out.w4);
+
+        printf(" [w/i] m1, m2, m3, m4 (r/min)   : ");
+        printf(" %9.4f %9.4f %9.4f %9.4f \n",
+            sd->mot.in.w1, sd->mot.in.w2,
+            sd->mot.in.w3, sd->mot.in.w4);
 
         printf(" [rpm/o] m1, m2, m3, m4 (r/min) : ");
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
             sd->mot.out.rpm1, sd->mot.out.rpm2,
             sd->mot.out.rpm3, sd->mot.out.rpm4);
 
+        printf(" [rpm/i] m1, m2, m3, m4 (r/min) : ");
+        printf(" %9.4f %9.4f %9.4f %9.4f \n",
+            sd->mot.in.rpm1, sd->mot.in.rpm2,
+            sd->mot.in.rpm3, sd->mot.in.rpm4);
+
         printf(" [pwm/o] m1, m2, m3, m4         : ");
         printf(" %9.4f %9.4f %9.4f %9.4f \n",
             sd->mot.out.pwm1, sd->mot.out.pwm2,
             sd->mot.out.pwm3, sd->mot.out.pwm4);
-
-        printf(" [w/i] m1, m2, m3, m4 (r/min)   : ");
-        printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.in.w1, sd->mot.in.w2,
-            sd->mot.in.w3, sd->mot.in.w4);
 
         printf("\n\n");
         #endif

@@ -82,6 +82,7 @@ bool keypad_input_check(system_data* sd)
         vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
 
         c = getche();
+        system("cls");
 
         MSG(sd->log, "[DEBUG] keypad_input_check, loop... (%c) \n", c);
 
