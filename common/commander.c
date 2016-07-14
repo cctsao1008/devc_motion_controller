@@ -177,7 +177,7 @@ bool keypad_input_check(system_data* sd)
         {
             sd->sv.vx = DEFAULT_MAX_VX;
             sd->sv.vy = DEFAULT_MAX_VY;
-            sd->sv.vy = DEFAULT_MAX_W0;
+            sd->sv.w0 = DEFAULT_MAX_W0;
         }
 
         if (c == KEY_i)
