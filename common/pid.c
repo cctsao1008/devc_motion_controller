@@ -23,17 +23,17 @@
 
 bool pid_control_init(system_data* sd)
 {
-    sd->vx_ga.kp = 0.1f;
-    sd->vx_ga.ki = 0.0f;
-    sd->vx_ga.kd = 0.05f;
+    sd->pid[VX].kp = 0.1f;
+    sd->pid[VX].ki = 0.0f;
+    sd->pid[VX].kd = 0.05f;
 
-    sd->vy_ga.kp = 0.1f;
-    sd->vy_ga.ki = 0.0f;
-    sd->vy_ga.kd = 0.05f;
+    sd->pid[VY].kp = 0.1f;
+    sd->pid[VY].ki = 0.0f;
+    sd->pid[VY].kd = 0.05f;
 
-    sd->w0_ga.kp = 0.1f;
-    sd->w0_ga.ki = 0.0f;
-    sd->w0_ga.kd = 0.05f;
+    sd->pid[W0].kp = 0.1f;
+    sd->pid[W0].ki = 0.0f;
+    sd->pid[W0].kd = 0.05f;
 
     return true;
 }
@@ -84,27 +84,27 @@ bool pid_control_update(system_data* sd)
     w0_err_dif = (w0_err - w0_err_prev) / (sd->t_delta / 1000.0f) ;
 
     /* gain */
-    p_out[0] = sd->vx_ga.kp * vx_err;
-    i_out[0] = sd->vx_ga.ki * vx_err_sum;
-    d_out[0] = sd->vx_ga.kd * vx_err_dif;
+    p_out[VX] = sd->pid[VX].kp * vx_err;
+    i_out[VX] = sd->pid[VX].ki * vx_err_sum;
+    d_out[VX] = sd->pid[VX].kd * vx_err_dif;
 
-    p_out[1] = sd->vy_ga.kp * vy_err;
-    i_out[1] = sd->vy_ga.ki * vy_err_sum;
-    d_out[1] = sd->vy_ga.kd * vy_err_dif;
+    p_out[VY] = sd->pid[VY].kp * vy_err;
+    i_out[VY] = sd->pid[VY].ki * vy_err_sum;
+    d_out[VY] = sd->pid[VY].kd * vy_err_dif;
 
-    p_out[2] = sd->w0_ga.kp * w0_err;
-    i_out[2] = sd->w0_ga.ki * w0_err_sum;
-    d_out[2] = sd->w0_ga.kd * w0_err_dif;
+    p_out[W0] = sd->pid[W0].kp * w0_err;
+    i_out[W0] = sd->pid[W0].ki * w0_err_sum;
+    d_out[W0] = sd->pid[W0].kd * w0_err_dif;
 
     /* summation */
-    sd->cv.vx += p_out[0] + i_out[0] + d_out[0];
-    sd->cv.vy += p_out[1] + i_out[1] + d_out[1];
-    sd->cv.w0 += p_out[2] + i_out[2] + d_out[2];
+    sd->cv.vx += p_out[VX] + i_out[VX] + d_out[VX];
+    sd->cv.vy += p_out[VY] + i_out[VY] + d_out[VY];
+    sd->cv.w0 += p_out[W0] + i_out[W0] + d_out[W0];
 
     #if DEBUG
     MSG(sd->log, "[DEBUG] pid_control_update : \n");
     MSG(sd->log, "vx, p_out, i_out, d_out = \n");
-    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[0], i_out[0], d_out[0], vx_err, vx_err_prev, sd->cv.vx);
+    MSG(sd->log, "%9.4f %9.4f %9.4f, %9.4f %9.4f, %9.4f \n\n", p_out[VX], i_out[VX], d_out[VX], vx_err, vx_err_prev, sd->cv.vx);
     #endif
 
     vx_err_prev = vx_err;

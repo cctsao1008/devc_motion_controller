@@ -21,6 +21,8 @@
 //#define MSG(buf, fmt, args...)	do { sprintf(buf, "" fmt "", ##args); } while(0)
 #define MSG(buf, fmt, args...)	do { printf("" fmt "", ##args); } while(0)
 
+enum {VX, VY, W0};
+
 typedef struct _system_state
 {
     /* vx, vy, w0 & yaw in vehicle frame */
@@ -73,7 +75,7 @@ typedef struct _system_data
 
     /* motor control */
     mot_data mot;
-    pid_data vx_ga, vy_ga, w0_ga;
+    pid_data pid[3];
     uint32_t t_prev, t_curr, t_delta;
 
     /* motor driver */
