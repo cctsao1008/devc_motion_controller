@@ -108,11 +108,7 @@ int main(int argc, char *argv[])
     pthread_t tid[2] = {0};
 
     /* system... */
-    system_data *sd;
-
-    memset(&start, 0, sizeof(timespec));
-    memset(&end, 0, sizeof(timespec));
-    memset(sd, 0, sizeof(system_data));
+    system_data *sd = NULL;
 
     /* SDL2 test code */
     #if 0   // REF.
@@ -155,7 +151,7 @@ int main(int argc, char *argv[])
                                                     tm.tm_hour,
                                                     tm.tm_min,
                                                     tm.tm_sec);
-
+    /* data logger */
     pLog = fopen("log/log.txt", "w");
 
     if(pLog == NULL)
@@ -181,13 +177,15 @@ int main(int argc, char *argv[])
     }
     #endif
 
-    #if 0  // REF.
+    /* REF */
+    #if 0
     srand((unsigned) time(NULL) + getpid());
     #endif
 
     print_banner(banner);
 
-    #if 0  // REF.
+    /* REF */
+    #if 0
     int t1, t2, ts;
     QueryPerformance Frequency(&ts);
     QueryPerformanceCounter(&t1);
@@ -198,6 +196,10 @@ int main(int argc, char *argv[])
 
     sd = system_init();
 
+    memset(sd, 0, sizeof(system_data));
+    memset(&start, 0, sizeof(timespec));
+    memset(&end, 0, sizeof(timespec));
+
     if(sd == NULL)
         exit(0);
 
@@ -206,16 +208,17 @@ int main(int argc, char *argv[])
 
     motion_control_init(sd);
     motor_control_init(sd);
-
     commander_init(sd);
 
     pthread_mutex_init(&mutex[0], NULL);
     pthread_mutex_init(&mutex[1], NULL);
 
+    /* Text info */
     #if EN_INFO_T
     pthread_create(&tid[0], NULL, &print_info_t, (void *)sd);
     #endif
 
+    /* plot chart */
     #if EN_INFO_C
     pthread_create(&tid[1], NULL, &print_info_c, (void *)sd);
     #endif
