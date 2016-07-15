@@ -26,9 +26,36 @@
 #define STC2 0x90 // start code 2
 
 /* linear regression */
-int lr(double *data, int rows, double *a, double *b, double *sp);
+bool linear_regression(float *data, int row, float *a, float *b);
 
 static bool initialized = false;
+
+/*
+    --------
+    RPM, PWM
+    --------
+    283, 100
+    256,  90
+    196,  80
+    145,  70
+    101,  60
+     80,  55
+     61,  50
+     42,  45
+     26,  40
+     12,  35
+     -------
+ */
+float mot_rpm2pwm[] = {283, 100,
+                       256, 90,
+                       196, 80,
+                       145, 70,
+                       101, 60,
+                        80, 55,
+                        61, 50,
+                        42, 45,
+                        26, 40,
+                        12, 35};
 
 /* Add "\\\\.\\" for COM > 10 */
 static char* com_port = (char*)"\\\\.\\COM6";
@@ -216,6 +243,9 @@ DWORD uart_tx(HANDLE hComm, uint8_t * data, int length)
 
 bool motor_driver_init(system_data* sd)
 {
+    float a, b;
+    int row;
+
     MSG(sd->log, "%s", "[INFO] motor_driver_init... \n");
 
     if(sd == NULL)
@@ -226,6 +256,10 @@ bool motor_driver_init(system_data* sd)
 
     if(initialized == true)
         return true;
+
+    row = sizeof(mot_rpm2pwm)/sizeof(float)/2;
+    linear_regression(mot_rpm2pwm, row, &a, &b);
+    printf("[INFO] motor_driver_init, linear_regression, row = %d, a = %f, b = %f \n", row, a, b);
 
     fflush(stdout);
 
@@ -342,20 +376,24 @@ bool motor_driver_update(system_data* sd)
 }
 
 /* linear regression */
-int lr(double *data, int rows, double *a, double *b, double *sp)
+bool linear_regression(float *data, int row, float *a, float *b)
 {
     int m;
-    double *p, lxx = 0.0, lxy = 0.0, xa = 0.0, ya = 0.0;
-    if (data == 0 || a == 0 || b == 0 || rows < 1)
-        return -1;
-    for (p = data, m = 0; m < rows; m ++)
+    float *p, lxx = 0.0, lxy = 0.0, xa = 0.0, ya = 0.0;
+
+    if(data == NULL || a == NULL || b == NULL || row < 1)
+        return false;
+
+    for(p = data, m = 0; m < row; m ++)
     {
         xa += *p ++;
         ya += *p ++;
     }
-    xa /= rows;
-    ya /= rows;
-    for (p = data, m = 0; m < rows; m ++, p += 2)
+
+    xa /= row;
+    ya /= row;
+
+    for(p = data, m = 0; m < row; m ++, p += 2)
     {
         lxx += ((*p - xa) * (*p - xa));
         lxy += ((*p - xa) * (*(p + 1) - ya)); // lxy = sum((X - Xa)(Y - Ya))
@@ -363,19 +401,10 @@ int lr(double *data, int rows, double *a, double *b, double *sp)
 
     *b = lxy / lxx; // b = lxy / lxx
     *a = ya - *b * xa; // a = ya - b * xa
-    if (sp == 0)
-        return 0;
 
-    sp[0] = sp[1] = 0.0;
-    for (p = data, m = 0; m < rows; m ++, p ++)
-    {
-        lxy = *a + *b * *p ++;
-        sp[0] += ((lxy - ya) * (lxy - ya));
-        sp[1] += ((*p - lxy) * (*p - lxy));
-    }
+    for(p = data, m = 0; m < row; m ++, p ++)
+        lxy = *a + *b * *p++;
 
-    sp[2] = sp[0];
-    sp[3] = sp[1] / (rows - 2);
     return 0;
 }
 
