@@ -25,10 +25,7 @@
 #define MIN(A,B)  ((A) < (B) ? (A) : (B))
 
 /*
-  Program:     fuzzy.c
-  Written by:  Scott Brown
-
-  2 input fuzzy controller to control inverted pendulum system.  Controller has
+  2 input fuzzy controller for differential speed control system.  Controller has
   5 membship functions for each input and 5 membership functions for the output.
   Center-of-gravity is used for defuzzification.
 */
@@ -70,35 +67,35 @@ void fuzzy_init(FUZ_SYS *fuzzy_system) {
 
   /* Allocate memory for membership functions. */
   if (!(fuzzy_system->emem = (IN_MEM *) malloc(sizeof(IN_MEM)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->edotmem = (IN_MEM *) malloc(sizeof(IN_MEM)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->outmem = (OUT_MEM *) malloc(sizeof(OUT_MEM)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->emem->center = (double *) malloc(5*sizeof(double)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->emem->dom = (double *) malloc(5*sizeof(double)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->edotmem->center = (double *) malloc(5*sizeof(double)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->edotmem->dom = (double *) malloc(5*sizeof(double)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
   if (!(fuzzy_system->outmem->center = (double *) malloc(5*sizeof(double)))) {
-    printf("Error allocating memory.\n");
+    printf("[ERROR] allocating memory.\n");
     exit(1);
   }
 
@@ -137,7 +134,7 @@ double fuzzy_control(double e, double edot, FUZ_SYS *fuzzy_system) {
   fuzzyify(e, fuzzy_system->emem);
   fuzzyify(edot, fuzzy_system->edotmem);
   match(fuzzy_system->emem, fuzzy_system->edotmem, pos);
-  return inf_defuzz(fuzzy_system->emem, fuzzy_system->edotmem, fuzzy_system->outmem, pos);
+  return inf_defuzz(fuzzy_system->emem, fuzzy_system->edotmem, fuzzy_system->outmem, pos) * (-1.0);
 }
 
 void fuzzyify(double u, IN_MEM *mem) {
@@ -308,11 +305,9 @@ bool fuzzy_control_update(system_data* sd)
     vy_err_prev = vy_err;
     w0_err_prev = w0_err;
 
-    sd->cv.vx -= (float)fuzzy_control((double)vx_err, (double)vx_err_dif, &fuzzy_system) * 0.004f;
-    sd->cv.vy -= (float)fuzzy_control((double)vy_err, (double)vy_err_dif, &fuzzy_system) * 0.004f;
-    sd->cv.w0 -= (float)fuzzy_control((double)w0_err, (double)w0_err_dif, &fuzzy_system) * 0.004f;
-
-    //printf("e = %f, edot = %f, u = %f \n", vx_err, vx_err_dif, sd->cv.vx);
+    sd->cv.vx += (float)fuzzy_control((double)vx_err, (double)vx_err_dif, &fuzzy_system) * 0.004f;
+    sd->cv.vy += (float)fuzzy_control((double)vy_err, (double)vy_err_dif, &fuzzy_system) * 0.004f;
+    sd->cv.w0 += (float)fuzzy_control((double)w0_err, (double)w0_err_dif, &fuzzy_system) * 0.004f;
 
     return true;
 }
