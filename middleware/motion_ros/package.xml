@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package>
+  <name>motion_node</name>
+  <version>0.1.0</version>
+  <description>
+    <p>
+      ROS support stack for motion control.
+    </p>
+  </description>
+  <author>Ricardo</author>
+  <maintainer email="tsao.ricardo@iac.com.tw">Ricardo</maintainer>
+  <license>CC BY-NC-SA</license>
+</package>

@@ -1,7 +1,7 @@
 /**
- * @file motion_helper.cpp
+ * @file motion_ros.cpp
  *
- * motion helper
+ * motion ros
  *
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
@@ -10,7 +10,7 @@
 
 int main(int argc,char** argv)
 {
-  ros::init(argc,argv,"motion_helper"); // Registering a node in ros master
+  ros::init(argc,argv,"motion_ros"); // Registering a node in ros master
   ROS_INFO("Welcome to ROS!");
   return 0;
 }
