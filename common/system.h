@@ -22,6 +22,7 @@
 #define MSG(buf, fmt, args...)	do { printf("" fmt "", ##args); } while(0)
 
 enum {VX, VY, W0};
+enum {M1, M2, M3, M4};
 
 typedef struct _system_state
 {
@@ -112,6 +113,11 @@ bool pid_control_update(system_data* sd);
 bool fuzzy_control_init(system_data* sd);
 bool fuzzy_control_update(system_data* sd);
 
+/* neural network */
+bool neural_network_init(system_data* sd);
+bool neural_network_update(system_data* sd);
+
 #ifdef __cplusplus
     }
 #endif
+
