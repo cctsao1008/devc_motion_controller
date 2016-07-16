@@ -21,6 +21,9 @@
 
 #define DEBUG false
 
+#define USE_PID
+//#define USE_FUZ
+
 static bool initialized = false;
 static float R = DEFAULT_R;
 
@@ -45,8 +48,15 @@ bool motion_control_init(system_data* sd)
     if(!kinematics_init(sd))
         return false;
 
-    pid_control_init(sd);
-    //fuzzy_control_init(sd);
+    #if defined(USE_PID)
+        /* use pid control */
+        pid_control_init(sd);
+    #elif defined(USE_FUZ)
+        /* use fuzzy control */
+        fuzzy_control_init(sd);
+    #else
+        #error "USE_PID/USE_FUZ must be defined!"
+    #endif
 
     initialized = true;
 
@@ -74,8 +84,16 @@ bool motion_control_update(system_data* sd)
     forward_kinematics(sd);
 
     /* calculating output signals, vx, vy, w0 */
-    pid_control_update(sd);
-    //fuzzy_control_update(sd);
+    #if defined(USE_PID)
+        /* use pid control */
+        pid_control_update(sd);
+    #elif defined(USE_FUZ)
+        /* use fuzzy control */
+        fuzzy_control_update(sd);
+    #endif
+
+    /* neural network learning */
+    neural_network_update(sd);
 
     /* calculating output signals, w1, w2, w3, w4 */
     inverse_kinematics(sd);
