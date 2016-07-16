@@ -7,7 +7,16 @@ find_package(catkin REQUIRED COMPONENTS roscpp)
 ## Declare a catkin package
 catkin_package()
 
-add_executable(motion motion.cpp)
+include_directories(include
+${catkin_INCLUDE_DIRS}
+../../../../platform/)
+
+add_executable(motion
+motion.cpp
+../../../../common/motor_control.c
+../../../../platform/omr10/motor_driver_ros.c
+)
+
 target_link_libraries(motion ${catkin_LIBRARIES})
 
 # %EndTag(FULLTEXT)%

@@ -15,7 +15,12 @@
 #include <time.h>
 
 #include "system.h"
+
+#ifdef _WIN32
 #include "..\platform\platform.h"
+#else
+#include "../platform/platform.h"
+#endif
 
 #define DEBUG false
 
