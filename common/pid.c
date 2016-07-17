@@ -20,6 +20,8 @@
 
 #define DEBUG false
 
+static struct timespec t;
+
 bool pid_control_init(system_data* sd)
 {
     sd->pid[VX].kp = 0.1f;
@@ -33,6 +35,11 @@ bool pid_control_init(system_data* sd)
     sd->pid[W0].kp = 0.1f;
     sd->pid[W0].ki = 0.0f;
     sd->pid[W0].kd = 0.05f;
+
+    //sd->t_curr = clock();
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    sd->t_curr = t.tv_sec * 1000 + t.tv_nsec / 1000000;
+    sd->t_delta = 0;
 
     return true;
 }
@@ -49,15 +56,19 @@ bool pid_control_update(system_data* sd)
 
     static float p_out[3], i_out[3], d_out[3];
 
-
     sd->t_prev = sd->t_curr;
-    sd->t_curr = clock();
+    //sd->t_curr = clock();
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    sd->t_curr = t.tv_sec * 1000 + t.tv_nsec/1000000.0;
 
     sd->t_delta = sd->t_curr - sd->t_prev;
 
     if(sd->t_delta <= 0.0f)
     {
-        MSG(sd->log, "[ERROR] pid_control_update, failed! \n");
+        MSG(sd->log, "[ERROR] pid_control_update, failed! perv = %f, curr = %f \n",
+            sd->t_prev, sd->t_curr);
+
+        sd->t_delta = 0;
         return false;
     }
 

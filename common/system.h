@@ -64,9 +64,9 @@ typedef struct _system_data
 {
     /* system */
     char log[256];
-    uint16_t loop_time;
-    float sys_usage;
-    float sys_elaps;
+    double loop_time;
+    double sys_usage;
+    double sys_elaps;
 
     /* motion control */
     system_state sv, cv, pv;
@@ -77,7 +77,7 @@ typedef struct _system_data
     /* motor control */
     mot_data mot;
     pid_data pid[3];
-    uint32_t t_prev, t_curr, t_delta;
+    double t_prev, t_curr, t_delta;
 
     /* motor driver */
     void* hComm;

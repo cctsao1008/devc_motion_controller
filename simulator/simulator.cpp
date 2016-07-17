@@ -26,11 +26,11 @@
 #define DEFAULT_LOOP_TIME           80
 //#define DEFAULT_LOOP_TIME       500
 
-#define BILLION                     1000000000L
+#define BILLION      1000000000L
 
-#define EN_INFO_F                   false
-#define EN_INFO_T                   true
-#define EN_INFO_C                   true
+#define EN_INFO_F    false
+#define EN_INFO_T    true
+#define EN_INFO_C    true
 
 using namespace std;
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     struct timespec start, end;
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
-    float t_elap = 0.0f;
+    double  t_elap = 0.0f;
     uint64_t t_diff = 0;
     clock_t ticks = 0;
 
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
         clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
 
         t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
-        t_elap += (float)sd->t_delta;
+        t_elap += sd->t_delta;
 
         sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
         sd->sys_elaps = t_elap / 1000.0f;
@@ -522,7 +522,7 @@ void* print_info_t(void *arg)
             sd->sys_usage, sd->sys_elaps);
 
         printf(" [SYSTEM] loop time (ms)        : ");
-        printf(" %9d \n",
+        printf(" %9.2f \n",
             sd->t_delta);
 
         printf(" [SV] vx, vy (m/s), w0 (rad/s)  : ");
@@ -570,6 +570,7 @@ void* print_info_t(void *arg)
         printf("\n\n");
 
         sleep(1);
+        //msleep(500);
     }
 }
 

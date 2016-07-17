@@ -23,6 +23,8 @@
 #define MAX(A,B)  ((A) > (B) ? (A) : (B))
 #define MIN(A,B)  ((A) < (B) ? (A) : (B))
 
+static struct timespec t;
+
 /*
   2 input fuzzy controller for differential speed control system.  Controller has
   5 membship functions for each input and 5 membership functions for the output.
@@ -264,6 +266,11 @@ bool fuzzy_control_init(system_data* sd)
 {
     fuzzy_init(&fuzzy_system);
 
+    //sd->t_curr = clock();
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    sd->t_curr = t.tv_sec * 1000 + t.tv_nsec/1000000.0;
+    sd->t_delta = 0;
+
     return true;
 }
 
@@ -274,13 +281,18 @@ bool fuzzy_control_update(system_data* sd)
     static float vx_err_dif, vy_err_dif, w0_err_dif;
 
     sd->t_prev = sd->t_curr;
-    sd->t_curr = clock();
+    //sd->t_curr = clock();
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    sd->t_curr = t.tv_sec * 1000 + t.tv_nsec/1000000.0;
 
     sd->t_delta = sd->t_curr - sd->t_prev;
 
     if(sd->t_delta <= 0.0f)
     {
-        MSG(sd->log, "[ERROR] pid_control_update, failed! \n");
+        MSG(sd->log, "[ERROR] pid_control_update, failed! perv = %f, curr = %f \n",
+            sd->t_prev, sd->t_curr);
+
+        sd->t_delta = 0;
         return false;
     }
 
