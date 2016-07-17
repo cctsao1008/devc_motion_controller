@@ -17,7 +17,7 @@
 #include <conio.h>
 
 #include "system.h"
-#include "..\platform\platform.h"
+#include "../platform/platform.h"
 
 #define DEBUG false
 

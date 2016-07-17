@@ -20,8 +20,8 @@
 //#include <winbgim.h>
 #include <SDL2/SDL.h>
 
-#include "..\common\system.h"
-#include "..\platform\platform.h"
+#include "../common/system.h"
+#include "../platform/platform.h"
 
 #define DEFAULT_LOOP_TIME           80
 //#define DEFAULT_LOOP_TIME       500
@@ -29,7 +29,7 @@
 #define BILLION                     1000000000L
 
 #define EN_INFO_F                   false
-#define EN_INFO_T                   true
+#define EN_INFO_T                   false
 #define EN_INFO_C                   true
 
 using namespace std;

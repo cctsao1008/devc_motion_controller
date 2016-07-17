@@ -17,7 +17,7 @@
 #include <time.h>
 
 #include "system.h"
-#include "..\platform\platform.h"
+#include "../platform/platform.h"
 
 void signal_callback_handler(int signum);
 

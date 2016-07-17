@@ -16,8 +16,8 @@
 #include <time.h>
 //#include <termios.h> /* POSIX terminal control definitions */
 
-#include "..\..\common\system.h"
-#include "..\platform\platform.h"
+#include "../../common/system.h"
+#include "../platform/platform.h"
 
 #define DEBUG false
 

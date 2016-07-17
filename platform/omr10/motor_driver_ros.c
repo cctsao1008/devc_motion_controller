@@ -15,13 +15,8 @@
 #include <time.h>
 //#include <termios.h> /* POSIX terminal control definitions */
 
-#ifdef _WIN32
-#include "..\..\common\system.h"
-#include "..\platform\platform.h"
-#else
 #include "../../common/system.h"
 #include "../platform/platform.h"
-#endif
 
 #define DEBUG false
 

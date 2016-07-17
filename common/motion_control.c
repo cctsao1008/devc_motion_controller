@@ -15,9 +15,9 @@
 #include <time.h>
 
 #include "system.h"
-#include "..\platform\platform.h"
+#include "../platform/platform.h"
 
-#include "small-matrix-inverse\invert4x4_c.h"
+#include "small-matrix-inverse/invert4x4_c.h"
 
 #define DEBUG false
 

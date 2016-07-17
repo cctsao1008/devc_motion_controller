@@ -19,7 +19,7 @@
 #include <conio.h>
 
 #include "system.h"
-#include "..\platform\platform.h"
+#include "../platform/platform.h"
 
 #define KEY_0 '0'
 #define KEY_1 '1'
