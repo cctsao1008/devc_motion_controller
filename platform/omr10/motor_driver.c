@@ -6,7 +6,14 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#if defined(_WIN32)
 #include <windows.h>
+#elif defined(__linux__ )
+/* POSIX terminal control definitions */
+#include <termios.h> /* POSIX terminal control definitions */
+#include <fcntl.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,7 +21,6 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-//#include <termios.h> /* POSIX terminal control definitions */
 
 #include "../../common/system.h"
 #include "../platform/platform.h"
@@ -57,8 +63,12 @@ float mot_rpm2pwm[] = {283, 100,
                         26, 40,
                         12, 35};
 
+#if defined(_WIN32)
 /* Add "\\\\.\\" for COM > 10 */
 static char* com_port = (char*)"\\\\.\\COM6";
+#elif defined (__linux__)
+static char* port = (char*)"/dev/ttyACM0";
+#endif
 
 uint8_t pwm_limiter(uint8_t pwm)
 {
@@ -102,7 +112,9 @@ uint8_t bcc(char *data, uint16_t len)
     return bcc;
 }
 
+#if defined(_WIN32)
 HANDLE open_port(const char* com_port)
+
 {
     HANDLE hComm = NULL;
 
@@ -114,27 +126,43 @@ HANDLE open_port(const char* com_port)
                         FILE_ATTRIBUTE_NORMAL, // no overlapped I/O
                         0); // null template
 
-    if(hComm == INVALID_HANDLE_VALUE)
-    {
-        MSG(sd->log, "[ERROR] motor_driver_init, open_port failed! \n");
-        return false;
-    }
-
     return hComm;
 }
-
-bool close_port(HANDLE hComm)
+#elif defined (__linux__)
+int open_port(const char* port)
 {
+    static int fd = -1;
+
+    fd = open(port, O_WRONLY);
+
+    if(fd < 0)
+        return (-1);
+
+    return fd;
+}
+#endif
+
+#if defined(_WIN32)
+bool close_port(HANDLE hComm)
+#elif defined (__linux__)
+bool close_port(int fd)
+#endif
+{
+    #if defined(_WIN32)
     if(hComm != INVALID_HANDLE_VALUE)
         CloseHandle(hComm);
     else
     {
         return false;
     }
+    #elif defined (__linux__)
+    close(fd);
+    #endif
 
     return true;
 }
 
+#if defined(_WIN32)
 /* variables used with the com port */
 BOOL            bPortReady;
 DCB             dcb;
@@ -203,6 +231,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
 
     return true;
 }
+#endif
 
 /**
     Reading:
@@ -210,6 +239,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
     The following transmission is a simple fileIO operation.
  */
 
+#if defined(_WIN32)
 DWORD uart_rx(HANDLE hComm, uint8_t * buffer, int buffersize)
 {
     DWORD dwBytesRead = 0;
@@ -221,12 +251,26 @@ DWORD uart_rx(HANDLE hComm, uint8_t * buffer, int buffersize)
 
     return dwBytesRead;
 }
+#elif defined (__linux__)
+uint16_t uart_rx(int fd, uint8_t *buffer, int buffersize)
+{
+    uint16_t dwBytesRead = 0;
+
+    if(!read(fd, buffer, buffersize, &dwBytesRead, NULL))
+    {
+        //handle error
+    }
+
+    return dwBytesRead;
+}
+#endif
 
 /**
     Writing
     The same information is needed when writing to the port.
  */
 
+#if defined(_WIN32)
 DWORD uart_tx(HANDLE hComm, uint8_t * data, int length)
 {
 
@@ -240,6 +284,21 @@ DWORD uart_tx(HANDLE hComm, uint8_t * data, int length)
     return dwBytesRead;
 
 }
+#elif defined(__linux__)
+uint16_t  uart_tx(int fd, uint8_t *data, int length)
+{
+
+    uint16_t dwBytesRead = 0;
+
+    if(!write(fd, data, length, &dwBytesRead, NULL))
+    {
+        //handle error
+    }
+
+    return dwBytesRead;
+
+}
+#endif
 
 bool motor_driver_init(system_data* sd)
 {
@@ -263,13 +322,21 @@ bool motor_driver_init(system_data* sd)
 
     fflush(stdout);
 
+    #if defined(_WIN32)
     sd->hComm = open_port(com_port);
 
-    if(sd->hComm ==INVALID_HANDLE_VALUE)
+    if(sd->hComm == INVALID_HANDLE_VALUE)
         return false;
 
     if(!setup_port(sd->hComm, CBR_9600, 8, NOPARITY, ONESTOPBIT))
         return false;
+    #elif defined(__linux__)
+    sd->fd = open_port(port);
+
+    if(sd->fd < 0)
+        return false;
+    #endif
+
 
     initialized = true;
 
@@ -284,7 +351,7 @@ bool motor_driver_update(system_data* sd)
 
     bool fr1, fr2, fr3, fr4;
 
-    char dir_forward[] = {0xEB, 0x90, 0xA1, 0x01, 0x04, 0x20}; // forward
+    char forward_test[] = {0xEB, 0x90, 0xA1, 0x01, 0x04, 0x20}; // forward
     char motor_ctrl[] = {0xEB, 0x90, 0xA1, 0x01, 0x0F, 0x2B};
     char motor_stop[] = {0xEB, 0x90, 0xA1, 0x01, 0x00, 0x24};
 
@@ -348,21 +415,37 @@ bool motor_driver_update(system_data* sd)
 
         brake_n--;
 
+        #if defined(_WIN32)
         uart_tx(sd->hComm, motor_stop, 6);
+        #elif defined(__linux__)
+        uart_tx(sd->fd, motor_stop, 6);
+        #endif
 
         return true;
     }
 
+    wb[127] = bcc(wb, 12);
+
+    #if defined(_WIN32)
     //uart_tx(sd->hComm, forward_test, 6);
     uart_tx(sd->hComm, motor_ctrl, 6);
 
-    wb[127] = bcc(wb, 12);
     uart_tx(sd->hComm, wb, 12);
     uart_tx(sd->hComm, &wb[127], 1);
+    #elif defined(__linux__)
+    //uart_tx(sd->fd, forward_test, 6);
+    uart_tx(sd->fd, motor_ctrl, 6);
 
+    uart_tx(sd->fd, wb, 12);
+    uart_tx(sd->fd, &wb[127], 1);
+    #endif
 
     #if DEBUG
-    //rc = uart_rx(sd->hComm, rb, 2);
+    #if defined(_WIN32)
+    rc = uart_rx(sd->hComm, rb, 2);
+    #elif defined(__linux__)
+    rc = uart_rx(sd->fd, rb, 2);
+    #endif
 
     if(rc > 0)
     {

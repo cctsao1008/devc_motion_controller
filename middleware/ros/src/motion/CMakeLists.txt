@@ -21,7 +21,7 @@ motion.cpp
 ../../../../common/nn.c
 ../../../../common/ga.c
 ../../../../common/motor_control.c
-../../../../platform/omr10/motor_driver_ros.c
+../../../../platform/omr10/motor_driver.c
 )
 
 target_link_libraries(motion ${catkin_LIBRARIES})

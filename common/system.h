@@ -81,6 +81,7 @@ typedef struct _system_data
 
     /* motor driver */
     void* hComm;
+    int fd;
 
     /* platform */
 
