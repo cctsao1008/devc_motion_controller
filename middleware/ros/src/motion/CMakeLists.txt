@@ -13,6 +13,13 @@ ${catkin_INCLUDE_DIRS}
 
 add_executable(motion
 motion.cpp
+../../../../common/system.c
+../../../../common/commander.c
+../../../../common/motion_control.c
+../../../../common/pid.c
+../../../../common/fuzzy.c
+../../../../common/nn.c
+../../../../common/ga.c
 ../../../../common/motor_control.c
 ../../../../platform/omr10/motor_driver_ros.c
 )

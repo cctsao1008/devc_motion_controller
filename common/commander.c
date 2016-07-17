@@ -6,8 +6,11 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -16,7 +19,14 @@
 #include <math.h>
 #include <time.h>
 #include <pthread.h>
-#include <conio.h>
+
+#ifndef _WIN32
+#include <termios.h>
+/* Standard file descriptors. */
+#define STDIN_FILENO 0 /* Standard input. */
+#define STDOUT_FILENO 1 /* Standard output. */
+#define STDERR_FILENO 2 /* Standard error output. */
+#endif
 
 #include "system.h"
 #include "../platform/platform.h"
@@ -70,6 +80,22 @@ bool commander_init(system_data* sd)
     return true;
 }
 
+#ifndef _WIN32
+int getch(void)
+{
+    static struct termios oldt, newt;
+    tcgetattr( STDIN_FILENO, &oldt);           // save old settings
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON);                 // disable buffering
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt);  // apply new settings
+
+    int c = getchar();  // read character (non-blocking)
+
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
+    return c;
+}
+#endif
+
 bool keypad_input_check(system_data* sd)
 {
     float vx, vy, w0, d = 0.02f;
@@ -81,8 +107,17 @@ bool keypad_input_check(system_data* sd)
     {
         vx = sd->sv.vx, vy = sd->sv.vy, w0 = sd->sv.w0;
 
+        #ifndef _WIN32
+        c = getch();
+        #else
         c = getche();
+        #endif
+
+        #ifndef _WIN32
+        system("clear");
+        #else
         system("cls");
+        #endif
 
         MSG(sd->log, "[DEBUG] keypad_input_check, loop... (%c) \n", c);
 
@@ -240,7 +275,7 @@ bool auto_speed_test(system_data* sd)
         if(count > 70)
         {
             count = 0;
-            Sleep(1000);
+            sleep(1);
 
             up = !up;
         }

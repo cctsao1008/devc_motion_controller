@@ -14,7 +14,6 @@
 #include <math.h>
 #include <time.h>
 #include <pthread.h>
-#include <conio.h>
 
 #include "system.h"
 #include "../platform/platform.h"

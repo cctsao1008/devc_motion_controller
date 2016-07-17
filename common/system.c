@@ -6,7 +6,6 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
-#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -30,7 +29,7 @@ system_data* system_init(void)
     MSG(data.log, "%s", "[INFO] system_init... \n");
 
     // Register signal and signal handler
-    signal(SIGINT, signal_callback_handler);
+    //signal(SIGINT, signal_callback_handler);
 
     system_data* sd = (system_data*)malloc(sizeof(system_data));
 

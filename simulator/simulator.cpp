@@ -29,7 +29,7 @@
 #define BILLION                     1000000000L
 
 #define EN_INFO_F                   false
-#define EN_INFO_T                   false
+#define EN_INFO_T                   true
 #define EN_INFO_C                   true
 
 using namespace std;
@@ -196,12 +196,12 @@ int main(int argc, char *argv[])
 
     sd = system_init();
 
+    if(sd == NULL)
+        exit(0);
+
     memset(sd, 0, sizeof(system_data));
     memset(&start, 0, sizeof(timespec));
     memset(&end, 0, sizeof(timespec));
-
-    if(sd == NULL)
-        exit(0);
 
     sd->mot.mode = 0;
     sd->loop_time = DEFAULT_LOOP_TIME;
@@ -518,7 +518,8 @@ void* print_info_t(void *arg)
 
         print_banner(banner);
         printf(" Motion Simulator running.. \n");
-        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n", sd->sys_usage, sd->sys_elaps);
+        printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n",
+            sd->sys_usage, sd->sys_elaps);
 
         printf(" [SYSTEM] loop time (ms)        : ");
         printf(" %9d \n",
