@@ -204,15 +204,15 @@ void print_info_t(void *arg)
 
         printf(" [SV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
-            sd->sv.vx, sd->sv.vx, sd->sv.vx);
+            sd->sv.vx, sd->sv.vy, sd->sv.w0);
 
         printf(" [CV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
-            sd->cv.vy, sd->cv.vy, sd->cv.vy);
+            sd->cv.vx, sd->cv.vy, sd->cv.w0);
 
         printf(" [PV] vx, vy (m/s), w0 (rad/s)  : ");
         printf(" %9.4f %9.4f %9.4f \n",
-            sd->pv.w0, sd->pv.w0, sd->pv.w0);
+            sd->pv.vx, sd->pv.vy, sd->pv.w0);
 
         printf(" [fr] m1, m2, m3, m4 (f/r)      : ");
         printf(" %9d %9d %9d %9d \n",
