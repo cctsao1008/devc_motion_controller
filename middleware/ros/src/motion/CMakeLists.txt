@@ -2,7 +2,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(motion)
 
-find_package(catkin REQUIRED COMPONENTS roscpp)
+find_package(catkin REQUIRED COMPONENTS
+geometry_msgs
+roscpp)
 
 ## Declare a catkin package
 catkin_package()

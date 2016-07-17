@@ -278,7 +278,7 @@ bool fuzzy_control_update(system_data* sd)
 
     sd->t_delta = sd->t_curr - sd->t_prev;
 
-    if(sd->t_delta < 0.0f)
+    if(sd->t_delta <= 0.0f)
     {
         MSG(sd->log, "[ERROR] pid_control_update, failed! \n");
         return false;

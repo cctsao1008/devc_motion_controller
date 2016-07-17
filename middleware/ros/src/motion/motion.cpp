@@ -21,14 +21,15 @@
 #include "../platform/platform.h"
 
 #include "ros/ros.h"
+#include <geometry_msgs/Twist.h>
 
 #include <sstream>
 
-#define DEFAULT_LOOP_TIME           200  // ms
+#define DEFAULT_LOOP_TIME           80.0f  // ms
 #define BILLION                     1000000000L
 
 void print_banner(char *data);
-void* print_info_t(void *arg);
+void print_info_t(void *arg);
 
 /* system... */
 system_data *sd = NULL;
@@ -36,8 +37,8 @@ system_data *sd = NULL;
 void timer1_cb(const ros::TimerEvent&)
 {
     //ROS_INFO("update");
-    motion_control_update(sd);
-    motor_control_update(sd);
+    //motion_control_update(sd);
+    //motor_control_update(sd);
 }
 
 void timer2_cb(const ros::TimerEvent&)
@@ -45,8 +46,26 @@ void timer2_cb(const ros::TimerEvent&)
     print_info_t(sd);
 }
 
-#if 0
-int msleep(unsigned long milisec)
+void vel_cb(const geometry_msgs::Twist& msg)
+{
+    sd->sv.vx = msg.linear.x;
+    sd->sv.vy = msg.linear.y;
+    sd->sv.w0 = msg.angular.z;
+
+}
+
+void* ros_cb(void *arg)
+{
+    for(;;)
+    {
+        //ros::spin();
+        ros::spinOnce();
+        msleep(50);
+    }
+}
+
+#if 1
+int mdelay(unsigned long milisec)
 {
     struct timespec req = {0};
     time_t sec = (int)(milisec / 1000);
@@ -69,21 +88,18 @@ int main(int argc,char** argv)
     uint64_t t_diff = 0;
     clock_t ticks = 0;
 
+    pthread_t tid;
+
     /* Registering a node in ros master */
     ros::init(argc,argv,"motion");
 
     ros::NodeHandle n;
+    ros::Subscriber s;
 
     sd = system_init();
 
     if(sd == NULL)
         return 0;
-
-    /* Timers allow you to get a callback at a specified rate. */
-    //ros::Timer timer1 = n.createTimer(ros::Duration(0, 80.0f * 1000 * 1000), timer1_cb);
-    ros::Timer timer2 = n.createTimer(ros::Duration(1.0f), timer2_cb);
-
-    //ROS_INFO("Welcome to ROS!");
 
     memset(sd, 0, sizeof(system_data));
 
@@ -94,26 +110,61 @@ int main(int argc,char** argv)
     motor_control_init(sd);
     commander_init(sd);
 
-    ros::Rate r(1.0); // 1 hz
+    pthread_create(&tid, NULL, &ros_cb, (void *)sd);
 
-    ros::Time current_time, last_time;
+    /* Timers allow you to get a callback at a specified rate. */
+    //ros::Timer timer1 = n.createTimer(ros::Duration(0, 80.0f * 1000 * 1000), timer1_cb);
+    ros::Timer timer2 = n.createTimer(ros::Duration(0.5f), timer2_cb);
+
+    ros::NodeHandle nh_param("~");
+    s = n.subscribe("cmd_vel", 100, &vel_cb);
+
+    //ROS_INFO("Welcome to ROS!");
+
+    ros::Rate r(1.0); // 1 hz
+    ros::Duration d = ros::Duration(0, 20 * 1000 * 1000);
+
+    ros::Time current_time, last_time((sd->loop_time /2) * 1000 * 1000);
+
     current_time = ros::Time::now();
     last_time = ros::Time::now();
 
     //ros::spin();
 
     //#if 0
-    while(n.ok())
+    while(ros::ok())
+    //for(;;)
     {
-        //ros::Time time = ros::Time::now();
+        ticks = clock();
+
+        /* measure monotonic time */
+        clock_gettime(CLOCK_MONOTONIC, &start); /* mark start time */
 
         motion_control_update(sd);
         motor_control_update(sd);
 
-        //Wait a duration of one second.
-        ros::Duration d = ros::Duration(0, 80 * 1000 * 1000);
-        d.sleep();
-        ros::spinOnce();
+        //ros::spinOnce();
+
+        //if((clock() - ticks) > (sd->loop_time))
+        //    printf("\n\n\n[ERROR] time > LOOP_TIME !! \n");
+
+        clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
+
+        t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
+        t_elap += (float)sd->t_delta;
+
+        sd->sys_usage = (t_diff / (float)((sd->loop_time) * 1000000)) * 100;
+        sd->sys_elaps = t_elap / 1000.0f;
+
+        //d.sleep();
+        //usleep(5 * 1000);
+        #if 1
+        struct timeval delay;
+        delay.tv_sec = 0;
+        delay.tv_usec = 10 * 1000;
+        select(0, NULL, NULL, NULL, &delay);
+        #endif
+        //mdelay(sd->loop_time);
     }
     //#endif
 
@@ -125,7 +176,7 @@ void print_banner(char *data)
     printf("%s \n\n", data);
 }
 
-void* print_info_t(void *arg)
+void print_info_t(void *arg)
 {
     system_data *sd = (system_data *) arg;
 
@@ -137,7 +188,7 @@ void* print_info_t(void *arg)
         system("clear");
 
         //print_banner(banner);
-        printf(" ROS motion is running.. \n");
+        printf(" ROS motion running.. \n");
         printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n",
             sd->sys_usage, sd->sys_elaps);
 
@@ -188,6 +239,10 @@ void* print_info_t(void *arg)
             sd->mot.out.pwm3, sd->mot.out.pwm4);
 
         printf("\n\n");
+
+        //if(sd->loop_time > sd->loop_time)
+        if(sd->t_delta > sd->loop_time)
+            printf("[ERROR] sd->t_delta > sd->loop_time !! \n");
     //}
 }
 
