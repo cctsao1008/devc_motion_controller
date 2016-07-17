@@ -137,7 +137,7 @@ void* print_info_t(void *arg)
         system("clear");
 
         //print_banner(banner);
-        printf(" ROS motion running.. \n");
+        printf(" ROS motion is running.. \n");
         printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n",
             sd->sys_usage, sd->sys_elaps);
 

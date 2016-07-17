@@ -517,7 +517,7 @@ void* print_info_t(void *arg)
         system("cls");
 
         print_banner(banner);
-        printf(" Motion Simulator running.. \n");
+        printf(" Motion Simulator is running.. \n");
         printf(" Loading %4.2f %%, Elapsed time %6.2f sec \n\n",
             sd->sys_usage, sd->sys_elaps);
 
