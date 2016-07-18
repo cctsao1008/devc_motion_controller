@@ -1,4 +1,3 @@
-# %Tag(FULLTEXT)%
 cmake_minimum_required(VERSION 2.8.3)
 project(motion)
 
@@ -6,9 +5,6 @@ find_package(catkin REQUIRED COMPONENTS
 std_msgs
 geometry_msgs
 roscpp)
-
-## Declare a catkin package
-catkin_package()
 
 include_directories(include
 ${catkin_INCLUDE_DIRS}
@@ -29,6 +25,7 @@ motion.cpp
 
 target_link_libraries(motion ${catkin_LIBRARIES})
 
-catkin_package()
+catkin_package(CATKIN_DEPENDS
+    std_msgs
+)
 
-# %EndTag(FULLTEXT)%
