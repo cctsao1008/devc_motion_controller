@@ -20,7 +20,7 @@
 #include "../common/system.h"
 #include "../platform/platform.h"
 
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 
 #include <sstream>
@@ -34,19 +34,7 @@ void print_info_t(void *arg);
 /* system... */
 system_data *sd = NULL;
 
-void timer1_cb(const ros::TimerEvent&)
-{
-    //ROS_INFO("update");
-    //motion_control_update(sd);
-    //motor_control_update(sd);
-}
-
-void timer2_cb(const ros::TimerEvent&)
-{
-    print_info_t(sd);
-}
-
-void vel_cb(const geometry_msgs::Twist& msg)
+void vel_rx_cb(const geometry_msgs::Twist& msg)
 {
     sd->sv.vx = msg.linear.x;
     sd->sv.vy = msg.linear.y;
@@ -54,14 +42,29 @@ void vel_cb(const geometry_msgs::Twist& msg)
 
 }
 
-void* ros_cb(void *arg)
+void timer1_cb(const ros::TimerEvent& event)
 {
-    for(;;)
-    {
-        //ros::spin();
-        //ros::spinOnce();
-        msleep(50);
-    }
+    print_info_t(sd);
+}
+
+void vel_tx_cb(const ros::TimerEvent& event)
+{
+    #if 0
+    //printf("vel_tx_cb \n");
+    ros::NodeHandle nh;
+    ros::Publisher pub;
+    ros::NodeHandle nh_param("~");
+    pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+
+    //we will be sending commands of type "twist"
+    geometry_msgs::Twist msg;
+
+    msg.linear.x = 0.2;
+    msg.linear.x = 0.2;
+    msg.angular.z = 0.4;
+
+    pub.publish(msg);
+    #endif
 }
 
 #if 1
@@ -81,7 +84,7 @@ int mdelay(unsigned long milisec)
 int main(int argc,char** argv)
 {
     /* time, clock... */
-    struct timespec start, end;
+    struct timespec t_s, t_e;
     time_t t = time(NULL);
     struct tm tm= *localtime(&t);
     uint64_t t_elap = 0;
@@ -93,8 +96,19 @@ int main(int argc,char** argv)
     /* Registering a node in ros master */
     ros::init(argc,argv,"motion");
 
-    ros::NodeHandle n;
-    ros::Subscriber s;
+    ros::NodeHandle nh;
+    ros::Subscriber sub;
+    ros::Publisher pub;
+
+
+    pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+
+    //we will be sending commands of type "twist"
+    geometry_msgs::Twist msg;
+
+    msg.linear.x = 0.2;
+    msg.linear.y = 0.2;
+    msg.angular.z = 0.4;
 
     sd = system_init();
 
@@ -110,14 +124,12 @@ int main(int argc,char** argv)
     motor_control_init(sd);
     commander_init(sd);
 
-    pthread_create(&tid, NULL, &ros_cb, (void *)sd);
-
     /* Timers allow you to get a callback at a specified rate. */
-    //ros::Timer timer1 = n.createTimer(ros::Duration(0, 80.0f * 1000 * 1000), timer1_cb);
-    ros::Timer timer2 = n.createTimer(ros::Duration(1.0), timer2_cb);
+    ros::Timer timer1 = nh.createTimer(ros::Duration(1, 0), timer1_cb);
+    //ros::Timer timer2 = nh.createTimer(ros::Duration(1, 0), vel_tx_cb);
 
     ros::NodeHandle nh_param("~");
-    s = n.subscribe("cmd_vel", 100, &vel_cb);
+    sub = nh.subscribe("cmd_vel", 100, &vel_rx_cb);
 
     //ROS_INFO("Welcome to ROS!");
 
@@ -135,8 +147,12 @@ int main(int argc,char** argv)
     while(ros::ok())
     //for(;;)
     {
+        clock_gettime(CLOCK_MONOTONIC, &t_s);
         ros::spinOnce();
-        //ticks = clock();
+        clock_gettime(CLOCK_MONOTONIC, &t_e);
+
+        t_diff = BILLION * (t_e.tv_sec - t_s.tv_sec) + t_e.tv_nsec - t_s.tv_nsec;
+        //printf("t_diff = %f ms \n", t_diff / 1000000);
 
         /* measure monotonic time */
         //clock_gettime(CLOCK_MONOTONIC, &start); /* mark start time */
@@ -162,6 +178,7 @@ int main(int argc,char** argv)
         //while(1);
 
         //d.sleep();
+        pub.publish(msg);
         loop_rate.sleep();
         //usleep(5 * 1000);
         #if 0
