@@ -6,6 +6,10 @@ std_msgs
 geometry_msgs
 roscpp)
 
+catkin_package(CATKIN_DEPENDS
+    std_msgs
+)
+
 include_directories(include
 ${catkin_INCLUDE_DIRS}
 ../../../../platform/)
@@ -25,7 +29,4 @@ motion.cpp
 
 target_link_libraries(motion ${catkin_LIBRARIES})
 
-catkin_package(CATKIN_DEPENDS
-    std_msgs
-)
 
