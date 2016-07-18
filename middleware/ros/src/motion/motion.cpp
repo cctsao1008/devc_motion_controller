@@ -34,7 +34,7 @@ void print_info_t(void *arg);
 /* system... */
 system_data *sd = NULL;
 
-void vel_rx_cb(const geometry_msgs::Twist& msg)
+void vel_cmd_sub_cb(const geometry_msgs::Twist &msg)
 {
     sd->sv.vx = msg.linear.x;
     sd->sv.vy = msg.linear.y;
@@ -42,18 +42,19 @@ void vel_rx_cb(const geometry_msgs::Twist& msg)
 
 }
 
-void timer1_cb(const ros::TimerEvent& event)
+void timer2_cb(const ros::TimerEvent &event)
 {
     print_info_t(sd);
 }
 
-void vel_tx_cb(const ros::TimerEvent& event)
+void timer1_cb(const ros::TimerEvent &event)
 {
     #if 0
     //printf("vel_tx_cb \n");
     ros::NodeHandle nh;
     ros::Publisher pub;
     ros::NodeHandle nh_param("~");
+
     pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
     //we will be sending commands of type "twist"
@@ -64,6 +65,7 @@ void vel_tx_cb(const ros::TimerEvent& event)
     msg.angular.z = 0.4;
 
     pub.publish(msg);
+    ros::spinOnce();
     #endif
 }
 
@@ -83,13 +85,10 @@ int mdelay(unsigned long milisec)
 
 int main(int argc,char** argv)
 {
-    /* time, clock... */
+    /* time, clock, perf... */
     struct timespec t_s, t_e;
-    time_t t = time(NULL);
-    struct tm tm= *localtime(&t);
     uint64_t t_elap = 0;
     double t_diff = 0;
-    clock_t ticks = 0;
 
     pthread_t tid;
 
@@ -125,28 +124,17 @@ int main(int argc,char** argv)
     commander_init(sd);
 
     /* Timers allow you to get a callback at a specified rate. */
-    ros::Timer timer1 = nh.createTimer(ros::Duration(1, 0), timer1_cb);
-    //ros::Timer timer2 = nh.createTimer(ros::Duration(1, 0), vel_tx_cb);
+    //ros::Timer timer1 = nh.createTimer(ros::Duration(0.5), timer1_cb, &nh);
+    ros::Timer timer2 = nh.createTimer(ros::Duration(1, 0), timer2_cb);
 
     ros::NodeHandle nh_param("~");
-    sub = nh.subscribe("cmd_vel", 100, &vel_rx_cb);
-
-    //ROS_INFO("Welcome to ROS!");
+    sub = nh.subscribe("cmd_vel", 100, &vel_cmd_sub_cb);
 
     ros::Rate loop_rate(1.0/(double)(sd->loop_time/1000.0));
-    ros::Duration d = ros::Duration(0, 20 * 1000 * 1000);
 
-    ros::Time current_time, last_time((sd->loop_time /2.0) * 1000 * 1000);
-
-    current_time = ros::Time::now();
-    last_time = ros::Time::now();
-
-    //ros::spin();
-
-    //#if 0
     while(ros::ok())
-    //for(;;)
     {
+        /* measure monotonic time */
         clock_gettime(CLOCK_MONOTONIC, &t_s);
         ros::spinOnce();
         clock_gettime(CLOCK_MONOTONIC, &t_e);
@@ -154,42 +142,18 @@ int main(int argc,char** argv)
         t_diff = BILLION * (t_e.tv_sec - t_s.tv_sec) + t_e.tv_nsec - t_s.tv_nsec;
         //printf("t_diff = %f ms \n", t_diff / 1000000);
 
-        /* measure monotonic time */
-        //clock_gettime(CLOCK_MONOTONIC, &start); /* mark start time */
-
         motion_control_update(sd);
         motor_control_update(sd);
 
-        //ros::spinOnce();
-
-        //if((clock() - ticks) > (sd->loop_time))
-        //    printf("\n\n\n[ERROR] time > LOOP_TIME !! \n");
-
-        //clock_gettime(CLOCK_MONOTONIC, &end);   /* mark the end time */
-
-        //t_diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
         t_elap += sd->t_delta;
 
         sd->sys_usage = (t_diff / (double)((sd->loop_time) * 1000000.0)) * 100.0;
-        //printf("%d, %f \n", (uint16_t)sd->sys_elaps, sd->t_delta);
         sd->sys_elaps = t_elap / 1000;
-        //printf("%f \n", sd->sys_elaps);
 
-        //while(1);
-
-        //d.sleep();
         pub.publish(msg);
+
         loop_rate.sleep();
-        //usleep(5 * 1000);
-        #if 0
-        struct timeval delay;
-        delay.tv_sec = 0;
-        delay.tv_usec = 10 * 1000;
-        select(0, NULL, NULL, NULL, &delay);
-        #endif
-        //mdelay(sd->loop_time);
     }
-    //#endif
 
     return 0;
 }
