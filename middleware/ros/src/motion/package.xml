@@ -1,42 +1,31 @@
 <?xml version="1.0"?>
-<!-- %Tag(FULLTEXT,-1)% -->
 <package>
-  <!-- %Tag(NAME)% -->
   <name>motion</name>
-  <!-- %EndTag(NAME)% -->
-  <!-- %Tag(VERSION)% -->
   <version>0.1.0</version>
-  <!-- %EndTag(VERSION)% -->
-  <!-- %Tag(DESC)% -->
   <description>ROS support stack for motion control.</description>
-  <!-- %EndTag(DESC)% -->
-
-  <!-- %Tag(MAINTAINER)% -->
   <maintainer email="tsao.ricardo@iac.com.tw">Ricardo</maintainer>
-  <!-- %EndTag(MAINTAINER)% -->
-  <!-- %Tag(LICENSE)% -->
   <license>BSD</license>
-  <!-- %EndTag(LICENSE)% -->
-  <!-- %Tag(URLS)% -->
   <url type="website">http://10.2.225.40/smart-machine/devc_motion_controller</url>
-  <!-- %EndTag(URLS)% -->
-  <!-- %Tag(AUTHORS)% -->
   <author email="tsao.ricardo@iac.com.tw">tsao.ricardo@iac.com.tw</author>
-  <!-- %EndTag(AUTHORS)% -->
 
-  <!-- %Tag(DEPS)% -->
+  <!-- Use buildtool_depend for build tool packages: -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <!-- Use build_depend for packages you need at compile time: -->
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
 
+  <!-- Use run_depend for packages you need at runtime: -->
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
-  <!-- %EndTag(DEPS)% -->
 
-  <!-- %Tag(EXPORT)% -->
-  <!-- %EndTag(EXPORT)% -->
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- You can specify that this package is a metapackage here: -->
+    <!-- <metapackage/> -->
+
+    <!-- Other tools can request additional information be placed here -->
+  </export>
 </package>
-<!-- %EndTag(FULLTEXT)% -->
