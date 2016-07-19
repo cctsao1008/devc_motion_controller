@@ -22,6 +22,8 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <motion_msgs/Data.h>
+
 
 #include <sstream>
 
@@ -89,26 +91,9 @@ int main(int argc,char** argv)
     struct timespec t_s, t_e;
     uint64_t t_elap = 0;
     double t_diff = 0;
-
     pthread_t tid;
 
-    /* Registering a node in ros master */
-    ros::init(argc,argv,"motion");
-
-    ros::NodeHandle nh;
-    ros::Subscriber sub;
-    ros::Publisher pub;
-
-
-    pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-
-    //we will be sending commands of type "twist"
-    geometry_msgs::Twist msg;
-
-    msg.linear.x = 0.2;
-    msg.linear.y = 0.2;
-    msg.angular.z = 0.4;
-
+    /* motion control */
     sd = system_init();
 
     if(sd == NULL)
@@ -122,6 +107,26 @@ int main(int argc,char** argv)
     motion_control_init(sd);
     motor_control_init(sd);
     commander_init(sd);
+
+    /* ROS Support */
+
+    /* Registering a node in ros master */
+    ros::init(argc,argv,"motion");
+
+    ros::NodeHandle nh;
+    ros::Subscriber sub;
+    ros::Publisher pub_geometry;
+    ros::Publisher pub_motion;
+
+    geometry_msgs::Twist msg_twist;
+    motion_msgs::Data msg_motion;
+
+    msg_twist.linear.x = 0.2;
+    msg_twist.linear.y = 0.2;
+    msg_twist.angular.z = 0.4;
+
+    pub_geometry = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    pub_motion = nh.advertise<motion_msgs::Data>("motion_data", 1);
 
     /* Timers allow you to get a callback at a specified rate. */
     //ros::Timer timer1 = nh.createTimer(ros::Duration(0.5), timer1_cb, &nh);
@@ -150,7 +155,60 @@ int main(int argc,char** argv)
         sd->sys_usage = (t_diff / (double)((sd->loop_time) * 1000000.0)) * 100.0;
         sd->sys_elaps = t_elap / 1000;
 
-        pub.publish(msg);
+        /* test ONLY */
+        #if 0
+        pub_geometry.publish(msg_twist);
+        #endif
+
+        msg_motion.loop_time = sd->loop_time;
+        /* sv */
+        msg_motion.sv.vx = sd->sv.vx;
+        msg_motion.sv.vy = sd->sv.vy;
+        msg_motion.sv.w0 = sd->sv.w0;
+        /* cv */
+        msg_motion.cv.vx = sd->cv.vx;
+        msg_motion.cv.vy = sd->cv.vy;
+        msg_motion.cv.w0 = sd->cv.w0;
+        /* pv */
+        msg_motion.pv.vx = sd->pv.vx;
+        msg_motion.pv.vy = sd->pv.vy;
+        msg_motion.pv.w0 = sd->pv.w0;
+        /* mot output */
+        msg_motion.mot_o.fr1 = sd->mot.out.fr1;
+        msg_motion.mot_o.fr2 = sd->mot.out.fr2;
+        msg_motion.mot_o.fr3 = sd->mot.out.fr3;
+        msg_motion.mot_o.fr4 = sd->mot.out.fr4;
+        msg_motion.mot_o.w1 = sd->mot.out.w1;
+        msg_motion.mot_o.w2 = sd->mot.out.w2;
+        msg_motion.mot_o.w3 = sd->mot.out.w3;
+        msg_motion.mot_o.w4 = sd->mot.out.w4;
+        msg_motion.mot_o.rpm1 = sd->mot.out.rpm1;
+        msg_motion.mot_o.rpm2 = sd->mot.out.rpm2;
+        msg_motion.mot_o.rpm3 = sd->mot.out.rpm3;
+        msg_motion.mot_o.rpm4 = sd->mot.out.rpm4;
+        msg_motion.mot_o.pwm1 = sd->mot.out.pwm1;
+        msg_motion.mot_o.pwm2 = sd->mot.out.pwm2;
+        msg_motion.mot_o.pwm3 = sd->mot.out.pwm3;
+        msg_motion.mot_o.pwm4 = sd->mot.out.pwm4;
+        /* mot input */
+        msg_motion.mot_i.fr1 = sd->mot.out.fr1;
+        msg_motion.mot_i.fr2 = sd->mot.out.fr2;
+        msg_motion.mot_i.fr3 = sd->mot.out.fr3;
+        msg_motion.mot_i.fr4 = sd->mot.out.fr4;
+        msg_motion.mot_i.w1 = sd->mot.in.w1;
+        msg_motion.mot_i.w2 = sd->mot.in.w2;
+        msg_motion.mot_i.w3 = sd->mot.in.w3;
+        msg_motion.mot_i.w4 = sd->mot.in.w4;
+        msg_motion.mot_i.rpm1 = sd->mot.in.rpm1;
+        msg_motion.mot_i.rpm2 = sd->mot.in.rpm2;
+        msg_motion.mot_i.rpm3 = sd->mot.in.rpm3;
+        msg_motion.mot_i.rpm4 = sd->mot.in.rpm4;
+        msg_motion.mot_i.pwm1 = sd->mot.in.pwm1;
+        msg_motion.mot_i.pwm2 = sd->mot.in.pwm2;
+        msg_motion.mot_i.pwm3 = sd->mot.in.pwm3;
+        msg_motion.mot_i.pwm4 = sd->mot.in.pwm4;
+
+        pub_motion.publish(msg_motion);
 
         loop_rate.sleep();
     }
