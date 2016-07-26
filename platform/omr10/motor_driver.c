@@ -63,11 +63,13 @@ float mot_rpm2pwm[] = {283, 100,
                         26, 40,
                         12, 35};
 
+#if 0
 #if defined(_WIN32)
 /* Add "\\\\.\\" for COM > 10 */
-static char* com_port = (char*)"\\\\.\\COM6";
+static char* port = (char*)"\\\\.\\COM6";
 #elif defined (__linux__)
-static char* port = (char*)"/dev/ttyACM0";
+static char* port = (char*)"/dev/ttyUSB0";
+#endif
 #endif
 
 uint8_t pwm_limiter(uint8_t pwm)
@@ -113,12 +115,12 @@ uint8_t bcc(char *data, uint16_t len)
 }
 
 #if defined(_WIN32)
-HANDLE open_port(const char* com_port)
+HANDLE open_port(const char* port)
 
 {
     HANDLE hComm = NULL;
 
-    hComm = CreateFile( com_port,
+    hComm = CreateFile( port,
                         GENERIC_READ | GENERIC_WRITE,
                         0, // exclusive access
                         0, // no security
@@ -167,16 +169,18 @@ bool close_port(int fd)
 BOOL            bPortReady;
 DCB             dcb;
 COMMTIMEOUTS    CommTimeouts;
+#endif
 
-bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, uint8_t stop_bits)
+bool setup_port(int fd, uint16_t baud, uint8_t data_bits, uint8_t parity, uint8_t stop_bits)
 {
-    if(hComm == NULL)
+    #if defined(_WIN32)
+    if(fd < 0)
     {
         return false;
     }
 
     /* struct termios options */
-    if(!SetupComm(hComm, 128, 128))
+    if(!SetupComm((HANDLE)fd, 128, 128))
     {
         MSG(sd->log, "[ERROR] setup_port(SetupComm), failed! \n");
         return false;
@@ -185,7 +189,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
     SecureZeroMemory(&dcb, sizeof(DCB));
     dcb.DCBlength = sizeof(DCB);
 
-    if(!GetCommState(hComm, &dcb))
+    if(!GetCommState((HANDLE)fd, &dcb))
     {
         MSG(sd->log, "[ERROR] setup_port(GetCommState), failed! \n");
         return false;
@@ -206,7 +210,7 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
     dcb.fOutxDsrFlow = FALSE;
     dcb.fDtrControl = DTR_CONTROL_DISABLE;
 
-    bPortReady = SetCommState(hComm, &dcb);
+    bPortReady = SetCommState((HANDLE)fd, &dcb);
 
     /* Communication timeouts are optional */
     CommTimeouts.ReadIntervalTimeout = 100;
@@ -215,23 +219,23 @@ bool setup_port(HANDLE hComm, uint16_t baud, uint8_t data_bits, uint8_t parity, 
     CommTimeouts.WriteTotalTimeoutConstant = 0;
     CommTimeouts.WriteTotalTimeoutMultiplier = 500;
 
-    if(!SetCommTimeouts (hComm, &CommTimeouts))
+    if(!SetCommTimeouts ((HANDLE)fd, &CommTimeouts))
     {
         MSG(sd->log, "[ERROR] setup_port(SetCommTimeouts), failed! \n");
         return false;
     }
 
-    if(!GetCommState(hComm, &dcb))
+    if(!GetCommState((HANDLE)fd, &dcb))
     {
         MSG(sd->log, "[ERROR] setup_port(GetCommState), failed! \n");
         return false;
     }
+    #endif
 
     MSG(sd->log, "[INFO] setup_port, passed. \n");
 
     return true;
 }
-#endif
 
 /**
     Reading:
@@ -322,21 +326,15 @@ bool motor_driver_init(system_data* sd)
 
     fflush(stdout);
 
-    #if defined(_WIN32)
-    sd->hComm = open_port(com_port);
-
-    if(sd->hComm == INVALID_HANDLE_VALUE)
-        return false;
-
-    if(!setup_port(sd->hComm, CBR_9600, 8, NOPARITY, ONESTOPBIT))
-        return false;
-    #elif defined(__linux__)
-    sd->fd = open_port(port);
+    sd->fd = (int)open_port(sd->port);
 
     if(sd->fd < 0)
         return false;
-    #endif
 
+    #if defined(_WIN32)
+    if(!setup_port(sd->fd, CBR_9600, 8, NOPARITY, ONESTOPBIT))
+        return false;
+    #endif
 
     initialized = true;
 

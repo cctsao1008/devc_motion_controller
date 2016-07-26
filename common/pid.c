@@ -24,17 +24,31 @@ static struct timespec t;
 
 bool pid_control_init(system_data* sd)
 {
-    sd->pid[VX].kp = 0.1f;
+    sd->pid[VX].kp = 0.062;
     sd->pid[VX].ki = 0.0f;
-    sd->pid[VX].kd = 0.05f;
+    sd->pid[VX].kd = 0.035f;
 
-    sd->pid[VY].kp = 0.1f;
+    sd->pid[VY].kp = 0.062;
     sd->pid[VY].ki = 0.0f;
-    sd->pid[VY].kd = 0.05f;
+    sd->pid[VY].kd = 0.035f;
 
-    sd->pid[W0].kp = 0.1f;
+    sd->pid[W0].kp = 0.06f;
     sd->pid[W0].ki = 0.0f;
-    sd->pid[W0].kd = 0.05f;
+    sd->pid[W0].kd = 0.01f;
+
+    #if 0
+    sd->pid[VX].kp = 0.062;
+    sd->pid[VX].ki = 0.0f;
+    sd->pid[VX].kd = 0.035f;
+
+    sd->pid[VY].kp = 0.035f;
+    sd->pid[VY].ki = 0.0f;
+    sd->pid[VY].kd = 0.01f;
+
+    sd->pid[W0].kp = 0.035f;
+    sd->pid[W0].ki = 0.0f;
+    sd->pid[W0].kd = 0.01f;
+    #endif
 
     //sd->t_curr = clock();
     clock_gettime(CLOCK_MONOTONIC, &t);

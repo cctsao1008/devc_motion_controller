@@ -23,7 +23,8 @@
 #include "../common/system.h"
 #include "../platform/platform.h"
 
-#define DEFAULT_LOOP_TIME           80
+#define DEFAULT_SERIAL_PORT         "\\\\.\\COM6"
+#define DEFAULT_LOOP_TIME           50
 //#define DEFAULT_LOOP_TIME       500
 
 #define BILLION      1000000000L
@@ -84,11 +85,6 @@ void* print_info_f(FILE *fp, system_data *sd); // file
 
 pthread_mutex_t mutex[2];
 
-void mdelay(unsigned int ticks)
-{
-    while (ticks > clock());
-}
-
 int main(int argc, char *argv[])
 {
     /* time, clock... */
@@ -109,6 +105,9 @@ int main(int argc, char *argv[])
 
     /* system... */
     system_data *sd = NULL;
+
+    /* serial port */
+    char port[64] = DEFAULT_SERIAL_PORT;
 
     /* SDL2 test code */
     #if 0   // REF.
@@ -205,6 +204,7 @@ int main(int argc, char *argv[])
 
     sd->mot.mode = 0;
     sd->loop_time = DEFAULT_LOOP_TIME;
+    sd->port = port;
 
     motion_control_init(sd);
     motor_control_init(sd);
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
         pthread_mutex_unlock(&mutex[0]);
         pthread_mutex_unlock(&mutex[1]);
 
-        mdelay(ticks + DEFAULT_LOOP_TIME);
+        msleep(DEFAULT_LOOP_TIME);
     }
 
     return 0;
@@ -492,7 +492,7 @@ void* print_info_c(void *arg)
         bar(0, maxy + 1, maxx + 1, maxy + 30);
         setcolor(WHITE);
         setbkcolor(RED);
-        sprintf(text, " time %7.2f sec | perf %5.2f%% | loop %4d ms" , sd->sys_elaps, sd->sys_usage, sd->loop_time);
+        sprintf(text, " time %7.2f sec | perf %5.2f%% | loop %7.2f ms" , sd->sys_elaps, sd->sys_usage, sd->t_delta);
         outtextxy(0, maxy + 6, text);
         setbkcolor(BLACK);
         #endif
@@ -577,8 +577,8 @@ void* print_info_t(void *arg)
 void* print_info_f(FILE *fp, system_data *sd)
 {
     /* data logger */
-    fprintf(fp, "%10ld, ",
-        sd->t_curr);
+    fprintf(fp, "%9.4f, ",
+        sd->sys_elaps);
 
     fprintf(fp, "%9.4f, %9.4f, %9.4f, ",
         sd->sv.vx, sd->cv.vx, sd->pv.vx);
