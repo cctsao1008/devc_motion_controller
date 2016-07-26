@@ -6,6 +6,10 @@
  * @author Ricardo <tsao.ricardo@iac.com.tw>
  */
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -67,6 +71,7 @@ int system_task_create(void *(*task) (void *), void *arg)
     return true;
 }
 
+#if 1
 int msleep(unsigned long milisec)
 {
     struct timespec req = {0};
@@ -78,6 +83,16 @@ int msleep(unsigned long milisec)
          continue;
     return 1;
 }
+#else
+int msleep(unsigned long milisec)
+{
+    #if defined(_WIN32)
+    Sleep(milisec);
+    #elif defined(__linux__)
+    msleep(milisec); // will caused segmentation fault in linux
+    #endif
+}
+#endif
 
 void timer1_callback_handler(int signum)
 {

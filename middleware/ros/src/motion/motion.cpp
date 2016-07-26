@@ -27,7 +27,8 @@
 
 #include <sstream>
 
-#define DEFAULT_LOOP_TIME           80.0  // ms
+#define DEFAULT_SERIAL_PORT         "/dev/ttyUSB0"
+#define DEFAULT_LOOP_TIME           50.0  // ms
 #define BILLION                     1000000000L
 
 void print_banner(char *data);
@@ -36,7 +37,7 @@ void print_info_t(void *arg);
 /* system... */
 system_data *sd = NULL;
 
-void vel_cmd_sub_cb(const geometry_msgs::Twist &msg)
+void sub_geometry_cb(const geometry_msgs::Twist &msg)
 {
     sd->sv.vx = msg.linear.x;
     sd->sv.vy = msg.linear.y;
@@ -51,39 +52,8 @@ void timer2_cb(const ros::TimerEvent &event)
 
 void timer1_cb(const ros::TimerEvent &event)
 {
-    #if 0
-    //printf("vel_tx_cb \n");
-    ros::NodeHandle nh;
-    ros::Publisher pub;
-    ros::NodeHandle nh_param("~");
-
-    pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-
-    //we will be sending commands of type "twist"
-    geometry_msgs::Twist msg;
-
-    msg.linear.x = 0.2;
-    msg.linear.x = 0.2;
-    msg.angular.z = 0.4;
-
-    pub.publish(msg);
-    ros::spinOnce();
-    #endif
+	
 }
-
-#if 1
-int mdelay(unsigned long milisec)
-{
-    struct timespec req = {0};
-    time_t sec = (int)(milisec / 1000);
-    milisec = milisec - (sec * 1000);
-    req.tv_sec = sec;
-    req.tv_nsec = milisec * 1000000L;
-    while(nanosleep(&req,&req) == (-1))
-         continue;
-    return 1;
-}
-#endif
 
 int main(int argc,char** argv)
 {
@@ -92,6 +62,7 @@ int main(int argc,char** argv)
     uint64_t t_elap = 0;
     double t_diff = 0;
     pthread_t tid;
+	char port[64] = DEFAULT_SERIAL_PORT;
 
     /* motion control */
     sd = system_init();
@@ -103,6 +74,7 @@ int main(int argc,char** argv)
 
     sd->mot.mode = 0;
     sd->loop_time = DEFAULT_LOOP_TIME;
+	sd->port = port;
 
     motion_control_init(sd);
     motor_control_init(sd);
@@ -114,18 +86,16 @@ int main(int argc,char** argv)
     ros::init(argc,argv,"motion");
 
     ros::NodeHandle nh;
-    ros::Subscriber sub;
-    ros::Publisher pub_geometry;
+    ros::Subscriber sub_geometry;
     ros::Publisher pub_motion;
 
-    geometry_msgs::Twist msg_twist;
+    geometry_msgs::Twist msg_geometry;
     motion_msgs::Data msg_motion;
 
-    msg_twist.linear.x = 0.2;
-    msg_twist.linear.y = 0.2;
-    msg_twist.angular.z = 0.4;
+    msg_geometry.linear.x = 0.2;
+    msg_geometry.linear.y = 0.2;
+    msg_geometry.angular.z = 0.4;
 
-    pub_geometry = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
     pub_motion = nh.advertise<motion_msgs::Data>("motion_data", 1);
 
     /* Timers allow you to get a callback at a specified rate. */
@@ -133,7 +103,7 @@ int main(int argc,char** argv)
     ros::Timer timer2 = nh.createTimer(ros::Duration(1, 0), timer2_cb);
 
     ros::NodeHandle nh_param("~");
-    sub = nh.subscribe("cmd_vel", 100, &vel_cmd_sub_cb);
+    sub_geometry = nh.subscribe("cmd_vel", 100, &sub_geometry_cb);
 
     ros::Rate loop_rate(1.0/(double)(sd->loop_time/1000.0));
 
@@ -227,67 +197,63 @@ void print_info_t(void *arg)
 
     printf("[INFO] print_info !! \n");
 
-    //for(;;)
-    //{
-        /* display system information */
-        system("clear");
+    /* display system information */
+    system("clear");
 
-        //print_banner(banner);
-        printf(" ROS motion is running.. \n");
-        printf(" Loading %4.2f %%, Elapsed time %9d sec \n\n",
-            sd->sys_usage, (uint16_t)sd->sys_elaps);
+    //print_banner(banner);
+    printf(" ROS motion is running.. \n");
+    printf(" Loading %4.2f %%, Elapsed time %9d sec \n\n",
+        sd->sys_usage, (uint16_t)sd->sys_elaps);
 
-        printf(" [SYSTEM] loop time (ms)        : ");
-        printf(" %9.2f \n",
-            sd->t_delta);
+    printf(" [SYSTEM] loop time (ms)        : ");
+    printf(" %9.2f \n",
+        sd->t_delta);
 
-        printf(" [SV] vx, vy (m/s), w0 (rad/s)  : ");
-        printf(" %9.4f %9.4f %9.4f \n",
-            sd->sv.vx, sd->sv.vy, sd->sv.w0);
+    printf(" [SV] vx, vy (m/s), w0 (rad/s)  : ");
+    printf(" %9.4f %9.4f %9.4f \n",
+        sd->sv.vx, sd->sv.vy, sd->sv.w0);
 
-        printf(" [CV] vx, vy (m/s), w0 (rad/s)  : ");
-        printf(" %9.4f %9.4f %9.4f \n",
-            sd->cv.vx, sd->cv.vy, sd->cv.w0);
+    printf(" [CV] vx, vy (m/s), w0 (rad/s)  : ");
+    printf(" %9.4f %9.4f %9.4f \n",
+        sd->cv.vx, sd->cv.vy, sd->cv.w0);
 
-        printf(" [PV] vx, vy (m/s), w0 (rad/s)  : ");
-        printf(" %9.4f %9.4f %9.4f \n",
-            sd->pv.vx, sd->pv.vy, sd->pv.w0);
+    printf(" [PV] vx, vy (m/s), w0 (rad/s)  : ");
+    printf(" %9.4f %9.4f %9.4f \n",
+        sd->pv.vx, sd->pv.vy, sd->pv.w0);
 
-        printf(" [fr] m1, m2, m3, m4 (f/r)      : ");
-        printf(" %9d %9d %9d %9d \n",
-            sd->mot.out.fr1, sd->mot.out.fr2,
-            sd->mot.out.fr3, sd->mot.out.fr4);
+    printf(" [fr] m1, m2, m3, m4 (f/r)      : ");
+    printf(" %9d %9d %9d %9d \n",
+        sd->mot.out.fr1, sd->mot.out.fr2,
+        sd->mot.out.fr3, sd->mot.out.fr4);
 
-        printf(" [w/o] m1, m2, m3, m4 (rad/s)   : ");
-        printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.out.w1, sd->mot.out.w2,
-            sd->mot.out.w3, sd->mot.out.w4);
+    printf(" [w/o] m1, m2, m3, m4 (rad/s)   : ");
+    printf(" %9.4f %9.4f %9.4f %9.4f \n",
+        sd->mot.out.w1, sd->mot.out.w2,
+        sd->mot.out.w3, sd->mot.out.w4);
 
-        printf(" [w/i] m1, m2, m3, m4 (rad/s)   : ");
-        printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.in.w1, sd->mot.in.w2,
-            sd->mot.in.w3, sd->mot.in.w4);
+    printf(" [w/i] m1, m2, m3, m4 (rad/s)   : ");
+    printf(" %9.4f %9.4f %9.4f %9.4f \n",
+        sd->mot.in.w1, sd->mot.in.w2,
+        sd->mot.in.w3, sd->mot.in.w4);
 
-        printf(" [rpm/o] m1, m2, m3, m4 (r/min) : ");
-        printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.out.rpm1, sd->mot.out.rpm2,
-            sd->mot.out.rpm3, sd->mot.out.rpm4);
+    printf(" [rpm/o] m1, m2, m3, m4 (r/min) : ");
+    printf(" %9.4f %9.4f %9.4f %9.4f \n",
+        sd->mot.out.rpm1, sd->mot.out.rpm2,
+        sd->mot.out.rpm3, sd->mot.out.rpm4);
 
-        printf(" [rpm/i] m1, m2, m3, m4 (r/min) : ");
-        printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.in.rpm1, sd->mot.in.rpm2,
-            sd->mot.in.rpm3, sd->mot.in.rpm4);
+    printf(" [rpm/i] m1, m2, m3, m4 (r/min) : ");
+    printf(" %9.4f %9.4f %9.4f %9.4f \n",
+        sd->mot.in.rpm1, sd->mot.in.rpm2,
+        sd->mot.in.rpm3, sd->mot.in.rpm4);
 
-        printf(" [pwm/o] m1, m2, m3, m4         : ");
-        printf(" %9.4f %9.4f %9.4f %9.4f \n",
-            sd->mot.out.pwm1, sd->mot.out.pwm2,
-            sd->mot.out.pwm3, sd->mot.out.pwm4);
+    printf(" [pwm/o] m1, m2, m3, m4         : ");
+    printf(" %9.4f %9.4f %9.4f %9.4f \n",
+        sd->mot.out.pwm1, sd->mot.out.pwm2,
+        sd->mot.out.pwm3, sd->mot.out.pwm4);
 
-        printf("\n\n");
+    printf("\n\n");
 
-        //if(sd->loop_time > sd->loop_time)
-        if(sd->t_delta > sd->loop_time)
-            printf("[ERROR] sd->t_delta > sd->loop_time !! \n");
-    //}
+    if(sd->t_delta > sd->loop_time)
+        printf("[ERROR] sd->t_delta > sd->loop_time !! \n");
 }
 

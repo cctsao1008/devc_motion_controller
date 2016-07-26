@@ -21,6 +21,9 @@
 #include "../platform/platform.h"
 
 #include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
+#include <nav_msgs/Odometry.h>
+#include <sensor_msgs/JointState.h>
 #include <geometry_msgs/Twist.h>
 #include <motion_msgs/Data.h>
 
@@ -36,11 +39,8 @@ void print_info_t(void *arg);
 /* system... */
 system_data *sd = NULL;
 
-void vel_cmd_sub_cb(const geometry_msgs::Twist &msg)
+void sub_motion_cb(const motion_msgs::Data &msg)
 {
-    sd->sv.vx = msg.linear.x;
-    sd->sv.vy = msg.linear.y;
-    sd->sv.w0 = msg.angular.z;
 
 }
 
@@ -51,39 +51,99 @@ int main(int argc,char** argv)
     uint64_t t_elap = 0;
     double t_diff = 0;
 
-    //commander_init(sd);
-
     /* ROS Support */
 
     /* Registering a node in ros master */
     ros::init(argc,argv,"motion_tester");
 
     ros::NodeHandle nh;
+	ros::Subscriber sub_motion;
     ros::Publisher pub_geometry;
+	ros::Publisher pub_odom;
+	ros::Publisher pub_joint;
 
     geometry_msgs::Twist msg_twist;
+	sensor_msgs::JointState joint_state;  
 
-    pub_geometry = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    //pub_geometry = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+	sub_motion = nh.subscribe("motion_data", 100, &sub_motion_cb);
+
+	// odom
+	//pub_odom = nh.advertise<nav_msgs::Odometry>("odom", 50);
+    tf::TransformBroadcaster odom_broadcaster;
+
+	pub_joint = nh.advertise<sensor_msgs::JointState>("joint_states", 1);
+	pub_geometry = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
     ros::NodeHandle nh_param("~");
 
     ros::Rate loop_rate(1.0/(double)(DEFAULT_LOOP_TIME/1000.0));
 
+	ros::Time current_time, last_time;
+  current_time = ros::Time::now();
+  last_time = ros::Time::now();
+
     while(ros::ok())
     {
-        /* measure monotonic time */
-        clock_gettime(CLOCK_MONOTONIC, &t_s);
-        ros::spinOnce();
-        clock_gettime(CLOCK_MONOTONIC, &t_e);
-
-        //t_diff = BILLION * (t_e.tv_sec - t_s.tv_sec) + t_e.tv_nsec - t_s.tv_nsec;
-        //t_elap += sd->t_delta;
-
         msg_twist.linear.x = 0.111;
         msg_twist.linear.y = 0.222;
         msg_twist.angular.z = 0.333;
 
         pub_geometry.publish(msg_twist);
+
+		current_time = ros::Time::now();
+
+		//since all odometry is 6DOF we'll need a quaternion created from yaw
+    	geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(0.0);
+
+		//first, we'll publish the transform over tf
+    	geometry_msgs::TransformStamped odom_trans;
+    	odom_trans.header.stamp = current_time;
+    	odom_trans.header.frame_id = "odom";
+    	odom_trans.child_frame_id = "base_link";
+ 
+    	odom_trans.transform.translation.x = 0.0;
+    	odom_trans.transform.translation.y = 0.0;
+    	odom_trans.transform.translation.z = 0.0;
+    	odom_trans.transform.rotation = odom_quat;
+ 
+    	//next, we'll publish the odometry message over ROS
+    	nav_msgs::Odometry odom;
+    	odom.header.stamp = current_time;
+    	odom.header.frame_id = "odom";
+ 
+    	//set the position
+    	odom.pose.pose.position.x = 0.0;
+    	odom.pose.pose.position.y = 0.0;
+    	odom.pose.pose.position.z = 0.0;
+    	odom.pose.pose.orientation = odom_quat;
+ 
+    	//set the velocity
+    	odom.child_frame_id = "base_link";
+    	odom.twist.twist.linear.x = 2.0;
+    	odom.twist.twist.linear.y = 0.0;
+    	odom.twist.twist.angular.z = 0.0;
+ 
+    	//publish the message
+    	//pub_odom.publish(odom);
+
+		//update joint_state  
+        joint_state.header.stamp = ros::Time::now();  
+        joint_state.name.resize(4);  
+        joint_state.position.resize(4);  
+        joint_state.name[0] ="joint_base_wheel1";  
+        joint_state.position[0] = 0;  
+        joint_state.name[1] ="joint_base_wheel2";  
+        joint_state.position[1] = 0;  
+        joint_state.name[2] ="joint_base_wheel3";  
+        joint_state.position[2] = 0;  
+        joint_state.name[3] ="joint_base_wheel4";  
+        joint_state.position[3] = 0; 
+
+		pub_joint.publish(joint_state);
+
+		//send the transform
+        odom_broadcaster.sendTransform(odom_trans);
 
         loop_rate.sleep();
     }

@@ -80,6 +80,7 @@ typedef struct _system_data
     double t_prev, t_curr, t_delta;
 
     /* motor driver */
+    char* port;
     void* hComm;
     int fd;
 

@@ -6,6 +6,8 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     motion_msgs
     roscpp
+    tf
+    nav_msgs
 )
 
 catkin_package(CATKIN_DEPENDS
