@@ -18,8 +18,13 @@
 #define MIN2S   60    // convert mm to m
 
 /* message */
+#ifdef Q_OS_WIN32
+//DEBUG(format, args...) printf("[%s:%d] "format, __FILE__, __LINE__, ##args)
+#define MSG(buf, fmt, args, ...) printf(format, ##args)
+#else
 //#define MSG(buf, fmt, args...)	do { sprintf(buf, "" fmt "", ##args); } while(0)
 #define MSG(buf, fmt, args...)	do { printf("" fmt "", ##args); } while(0)
+#endif
 
 enum {VX, VY, W0};
 enum {M1, M2, M3, M4};
