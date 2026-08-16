@@ -1,4 +1,4 @@
-# DEVC Motion Controller
+# Mecanum AGV Motion Control
 
 A modular motion-control framework developed for a Mecanum-wheel AGV platform and used as the mobile-base control subsystem in an integrated AGV and robotic-arm system.
 
