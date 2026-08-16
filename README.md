@@ -1,49 +1,61 @@
 # DEVC Motion Controller
 
-A modular mobile-robot motion-control framework originally developed for an AGV platform and used as part of an integrated AGV and robotic-arm system.
+A modular motion-control framework developed for a Mecanum-wheel AGV platform and used as the mobile-base control subsystem in an integrated AGV and robotic-arm system.
 
-The project separates reusable motion-control logic from platform-specific geometry, embedded firmware, middleware, motor drivers, and host-side simulation. Its main control path operates in the vehicle frame using linear velocity commands (`vx`, `vy`) and angular velocity (`w0`), then converts them into per-wheel commands through kinematic and feedback-control layers.
+The project separates reusable motion-control logic from platform-specific geometry, embedded firmware, middleware, motor drivers, and host-side simulation. Its main control path operates in the vehicle frame using linear velocity commands (`vx`, `vy`) and angular velocity (`w0`), then maps those commands to individual wheel speeds through kinematic and feedback-control layers.
 
 > **Project status:** Legacy / reference project. The repository contains working implementation code, platform variants, simulator code, and embedded firmware work, but the top-level build and setup flow is not consolidated into a single reproducible procedure.
 
 ## Historical Context
 
-This software was developed in the context of a physical AGV platform and later used within an integrated AGV and robot-arm system.
+This software was developed to control the motion of a physical **Mecanum-wheel AGV base**. The AGV was later used together with a robotic arm as an integrated robotic system.
 
-The repository represents the **mobile-platform motion-control side** of that system: vehicle motion commands, kinematics, feedback control, motor-control abstraction, platform configuration, and embedded execution.
+The repository represents the **mobile-base motion-control side** of that system. Its responsibilities include vehicle-frame motion commands, wheel kinematics, feedback control, motor-control abstraction, platform configuration, simulation, and embedded execution.
 
-It should not be interpreted as the complete software stack for the robot arm or the entire integrated robotic system.
+The Mecanum-wheel base allows the controller to represent planar motion using:
+
+- `vx` — longitudinal vehicle velocity
+- `vy` — lateral vehicle velocity
+- `w0` — yaw / rotational velocity
+
+These vehicle-level commands are converted into individual wheel commands (`w1` ... `w4`) by the kinematic layer.
+
+This repository should not be interpreted as the complete robot-arm software stack or the complete software for the integrated robotic system.
 
 ## What the Project Does
 
-The core software turns higher-level vehicle motion commands into wheel-level motor commands while keeping control algorithms and platform geometry reasonably independent.
+The core software converts higher-level planar vehicle-motion commands into wheel-level motor commands for the AGV while keeping control algorithms, platform geometry, motor interfaces, and execution environment reasonably independent.
 
 ```text
-Higher-level command / setpoint
-             |
-             v
-+----------------------------+
-|   Vehicle Motion Control   |
-|                            |
-|  velocity limits           |
-|  forward kinematics        |
-|  feedback controller       |
-|  inverse kinematics        |
-+-------------+--------------+
-              |
-              v
-        Wheel commands
-       w1 / w2 / w3 / w4
-              |
-              v
-+----------------------------+
-|       Motor Control        |
-+-------------+--------------+
-              |
-              v
-+----------------------------+
-|    Motor Driver / HW       |
-+----------------------------+
+Higher-level AGV command / setpoint
+            vx / vy / w0
+                 |
+                 v
++--------------------------------+
+|       Vehicle Motion Control   |
+|                                |
+|  velocity limits               |
+|  forward kinematics            |
+|  feedback controller           |
+|  inverse kinematics            |
++---------------+----------------+
+                |
+                v
+       Individual wheel commands
+          w1 / w2 / w3 / w4
+                |
+                v
++--------------------------------+
+|          Motor Control         |
++---------------+----------------+
+                |
+                v
++--------------------------------+
+|       Motor Driver / HW        |
++--------------------------------+
+                |
+                v
+        Mecanum-wheel AGV base
 ```
 
 At initialization, the motion-control layer prepares the kinematic matrices and initializes the selected controller. During each update cycle, it:
@@ -58,7 +70,8 @@ The current source selects PID control by default through `USE_PID` in `common/m
 
 ## Features
 
-- Vehicle-frame motion representation using `vx`, `vy`, and `w0`
+- Mecanum-wheel AGV motion control
+- Vehicle-frame planar motion representation using `vx`, `vy`, and `w0`
 - Forward and inverse kinematics
 - Four-wheel motion-control path using `w1` ... `w4`
 - PID feedback control
@@ -73,40 +86,47 @@ The current source selects PID control by default through `USE_PID` in `common/m
 ## Architecture
 
 ```text
-                   +----------------------+
-                   | Command / Setpoint   |
-                   +----------+-----------+
-                              |
-                              v
-                   +----------------------+
-                   |   common/            |
-                   | motion_control       |
-                   | controller / system  |
-                   +----------+-----------+
-                              |
-               +--------------+--------------+
-               |                             |
-               v                             v
-      +------------------+         +------------------+
-      | platform/        |         | motor_control    |
-      | robot geometry   |         | driver abstraction|
-      +------------------+         +--------+---------+
-                                           |
-                                           v
-                                  +------------------+
-                                  | Embedded HW /    |
-                                  | motor interface  |
-                                  +------------------+
+                    +----------------------+
+                    | Command / Setpoint   |
+                    |   vx / vy / w0       |
+                    +----------+-----------+
+                               |
+                               v
+                    +----------------------+
+                    |      common/         |
+                    | motion_control       |
+                    | controller / system  |
+                    +----------+-----------+
+                               |
+                +--------------+--------------+
+                |                             |
+                v                             v
+       +------------------+         +-------------------+
+       | platform/        |         | motor_control     |
+       | wheel geometry   |         | driver abstraction|
+       +------------------+         +---------+---------+
+                                             |
+                                             v
+                                    +------------------+
+                                    | Embedded HW /    |
+                                    | motor interface  |
+                                    +--------+---------+
+                                             |
+                                             v
+                                    +------------------+
+                                    | Mecanum-wheel    |
+                                    | AGV base         |
+                                    +------------------+
 
-               Shared control logic
-                       |
-          +------------+-------------+
-          |                          |
-          v                          v
- +------------------+       +------------------+
- | simulator/       |       | firmware/        |
- | host execution   |       | STM32 target     |
- +------------------+       +------------------+
+                Shared control logic
+                        |
+           +------------+-------------+
+           |                          |
+           v                          v
+  +------------------+       +------------------+
+  | simulator/       |       | firmware/        |
+  | host execution   |       | STM32 target     |
+  +------------------+       +------------------+
 ```
 
 The design keeps the reusable motion-control core separate from robot-specific geometry and execution environment so that the same basic control path can be exercised in simulation and adapted to different physical platforms.
@@ -152,7 +172,7 @@ Platform-specific code currently exists for:
 
 These directories isolate platform geometry and hardware-specific behavior from the common motion-control implementation.
 
-This is important for mobile-robot development because vehicle geometry, wheel layout, and hardware details can change without requiring the higher-level control architecture to be rewritten.
+For the original AGV application, the important control problem was the four-wheel Mecanum base: vehicle-frame planar motion had to be translated into coordinated wheel motion while retaining a reusable control architecture above the physical platform.
 
 ## Core Data Model
 
@@ -206,21 +226,22 @@ The repository contains multiple control approaches at different levels of matur
 - **Neural-network related code** — experimental stage in the update path
 - **Genetic-algorithm related code** — experimental optimization/control support
 
-These modules reflect the project’s role as both a practical mobile-robot controller and a development environment for comparing control approaches.
+These modules reflect the project’s role as both a practical AGV motion controller and a development environment for comparing control approaches.
 
 ## Design Characteristics
 
 The repository illustrates several architectural ideas that remain useful beyond the original AGV system:
 
 - separation of vehicle-level control from motor-level control
-- reusable kinematic and feedback-control logic
+- planar `vx` / `vy` / yaw motion representation above the wheel layer
+- reusable forward and inverse kinematic logic
 - platform geometry isolated from common algorithms
 - replaceable motor-driver and hardware layers
 - shared interfaces between host simulation and embedded execution
 - experimental controllers that can be introduced without restructuring the full system
 - support for evolving one motion-control core across multiple mobile-robot configurations
 
-In the original application context, this structure allowed the mobile platform to serve as one subsystem within a larger robotic system while preserving a distinct motion-control boundary.
+In the original application context, this structure allowed the Mecanum-wheel AGV base to serve as one subsystem within a larger robotic system while preserving a distinct motion-control boundary.
 
 ## Development Notes
 
@@ -243,31 +264,33 @@ A practical sequence would be:
           ↓
 2. Reproduce the common motion-control build
           ↓
-3. Validate kinematics and controller behavior in simulation
+3. Validate Mecanum kinematics and controller behavior in simulation
           ↓
 4. Reproduce one embedded firmware target
           ↓
 5. Verify motor-driver communication and wheel feedback
           ↓
-6. Run an end-to-end mobile-platform motion test
+6. Run an end-to-end AGV motion test
 ```
 
 ## Engineering Role
 
-This repository represents more than an isolated control-algorithm experiment. It combines:
+This repository represents the motion-control layer of a real Mecanum-wheel AGV rather than only an isolated control-algorithm experiment. It combines:
 
 ```text
-control algorithms
+vehicle-frame motion commands
         ↓
-vehicle kinematics
+Mecanum-wheel kinematics
+        ↓
+feedback control
         ↓
 motor control
         ↓
 embedded implementation
         ↓
-physical mobile platform
+physical AGV base
         ↓
-system-level robotic integration
+system-level AGV + robot-arm integration
 ```
 
 The historical AGV and robot-arm application is therefore useful context for understanding why the project contains both reusable control abstractions and multiple execution/platform layers.
